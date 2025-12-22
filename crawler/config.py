@@ -101,7 +101,7 @@ class Config:
             "base_url": "https://www.clien.net",
             "list_url": "https://www.clien.net/service/board/park",  # 자유게시판 (모두의공원)
             "site_name": "clien",
-            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # Cloudflare 우회 필요
             "selectors": {
                 "post_list": "div.list_item",
@@ -118,7 +118,7 @@ class Config:
             "base_url": "https://web.humoruniv.com",
             "list_url": "https://web.humoruniv.com/board/humor/list.html?table=pds",
             "site_name": "humoruniv",
-            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # JavaScript 렌더링 필요
             "selectors": {
                 "post_list": "table tr",
@@ -135,7 +135,7 @@ class Config:
             "base_url": "https://www.dogdrip.net",
             "list_url": "https://www.dogdrip.net/index.php?mid=dogdrip",
             "site_name": "dogdrip",
-            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # JavaScript 렌더링 필요
             "selectors": {
                 "post_list": "li.ed",
@@ -152,7 +152,7 @@ class Config:
             "base_url": "http://www.todayhumor.co.kr",
             "list_url": "http://www.todayhumor.co.kr/board/list.php?table=bestofbest",
             "site_name": "todayhumor",
-            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": False,  # requests로 충분
             "selectors": {
                 "post_list": "table.table_list tbody tr",
@@ -169,7 +169,7 @@ class Config:
             "base_url": "https://www.ppomppu.co.kr",
             "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor",
             "site_name": "ppomppu",
-            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": False,  # requests로 충분
             "selectors": {
                 "post_list": "table tbody tr",
