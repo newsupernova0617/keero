@@ -50,12 +50,12 @@ class Config:
             "base_url": "https://www.fmkorea.com",
             "list_url": "https://www.fmkorea.com/best",
             "site_name": "fmkorea",
-            "enabled": False,  # 비활성화 (보류)
-            "use_playwright": False,  # Rate limiting 문제
+            "enabled": True,  # 활성화 (Playwright로 시도)
+            "use_playwright": True,  # Playwright 사용
             "selectors": {
-                "post_list": "div.fm_best_widget > ul li.li",
-                "post_link": "h3.title a.hotdeal_var8",
-                "title": "span.np_18px_span",
+                "post_list": "div.fm_best_widget > ul li",
+                "post_link": "h3.title a",
+                "title": "h3.title a",
                 "content": "div.rd_body.clear",
                 "images": "div.rd_body img",
                 "date": "span.date.m_no",
