@@ -3,7 +3,21 @@ import { posts, images } from '$lib/server/schema'
 import { desc, isNull, sql } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url }) => {
+    // 페이지네이션 파라미터
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = 20
+    const offset = (page - 1) * limit
+
+    // 전체 게시글 수 조회
+    const totalCountResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(posts)
+        .where(isNull(posts.related_post_id))
+    
+    const totalCount = totalCountResult[0]?.count || 0
+    const totalPages = Math.ceil(totalCount / limit)
+
     // 원본 게시글만 조회 (중복 제외)
     const allPosts = await db
         .select({
@@ -20,7 +34,8 @@ export const load: PageServerLoad = async () => {
         .from(posts)
         .where(isNull(posts.related_post_id))
         .orderBy(desc(posts.id))
-        .limit(20)
+        .limit(limit)
+        .offset(offset)
 
     // 각 게시글의 첫 번째 이미지 가져오기
     const postsWithImages = await Promise.all(
@@ -40,6 +55,13 @@ export const load: PageServerLoad = async () => {
     )
 
     return {
-        posts: postsWithImages
+        posts: postsWithImages,
+        pagination: {
+            page,
+            totalPages,
+            totalCount,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+        }
     }
 }

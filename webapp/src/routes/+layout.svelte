@@ -20,9 +20,20 @@
 	let { supabase, session, user } = $derived(data)
 
 	onMount(() => {
-		const { data: authData } = supabase.auth.onAuthStateChange((_, newSession) => {
+		const { data: authData } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+			// 세션이 변경되었을 때만 검증
 			if (newSession?.expires_at !== session?.expires_at) {
-				invalidate('supabase:auth')
+				// getUser()로 JWT 검증
+				const { data: { user }, error } = await supabase.auth.getUser()
+				
+				// 검증 성공 시에만 invalidate
+				if (!error && user) {
+					invalidate('supabase:auth')
+				} else if (error) {
+					// 검증 실패 시 로그아웃 처리
+					await supabase.auth.signOut()
+					invalidate('supabase:auth')
+				}
 			}
 		})
 

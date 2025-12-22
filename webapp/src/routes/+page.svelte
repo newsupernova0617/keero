@@ -5,26 +5,27 @@
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG, AD_RULES } from '$lib/config/ads'
-	import SiteFilter from '$lib/components/SiteFilter.svelte'
+	// import SiteFilter from '$lib/components/SiteFilter.svelte'
 	import PostCardSkeleton from '$lib/components/PostCardSkeleton.svelte'
 	import EmptyState from '$lib/components/EmptyState.svelte'
 	import { Image } from '@lucide/svelte'
 
 	let { data }: { data: PageData } = $props()
 	
-	let selectedSite = $state('all')
+	// let selectedSite = $state('all')
 	let isLoading = $state(false)
 	
 	// 필터링된 게시글
-	let filteredPosts = $derived(
-		selectedSite === 'all' 
-			? data.posts 
-			: data.posts.filter(post => post.site_name === selectedSite)
-	)
+	// let filteredPosts = $derived(
+	// 	selectedSite === 'all' 
+	// 		? data.posts 
+	// 		: data.posts.filter(post => post.site_name === selectedSite)
+	// )
+	let filteredPosts = $derived(data.posts)
 	
-	function handleFilterChange(site: string) {
-		selectedSite = site
-	}
+	// function handleFilterChange(site: string) {
+	// 	selectedSite = site
+	// }
 </script>
 
 <svelte:head>
@@ -73,7 +74,7 @@
 	</div>
 
 	<!-- Site Filter -->
-	<SiteFilter onFilterChange={handleFilterChange} />
+	<!-- <SiteFilter onFilterChange={handleFilterChange} /> -->
 
 	<!-- Posts Grid -->
 	{#if isLoading}
@@ -85,9 +86,7 @@
 	{:else if filteredPosts.length === 0}
 		<EmptyState 
 			title="게시글이 없습니다"
-			description={selectedSite === 'all' 
-				? '아직 크롤링된 게시글이 없습니다.' 
-				: `${selectedSite}에서 크롤링된 게시글이 없습니다.`}
+			description="아직 크롤링된 게시글이 없습니다."
 		/>
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

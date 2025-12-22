@@ -6,15 +6,15 @@
 	import { Badge } from '$lib/components/ui/badge'
 	import { Button } from '$lib/components/ui/button'
 	import { Separator } from '$lib/components/ui/separator'
-	import * as Avatar from '$lib/components/ui/avatar'
 	import { Textarea } from '$lib/components/ui/textarea'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
-	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare, User } from '@lucide/svelte'
+	import Comment from '$lib/components/Comment.svelte'
+	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare } from '@lucide/svelte'
 
 	let { data }: { data: PageData } = $props()
-	let { post, images, comments, session } = $derived(data)
+	let { post, images, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
 	
 	// HTML sanitize
 	let sanitizedHtml = $derived(
@@ -27,6 +27,10 @@
 	)
 
 	let commentContent = $state('')
+	let replyingTo = $state<number | null>(null)
+	let replyContent = $state('')
+	let editingComment = $state<number | null>(null)
+	let editContent = $state('')
 
 	// 댓글 트리 구조 생성
 	function buildCommentTree(comments: any[]) {
@@ -53,6 +57,26 @@
 	}
 
 	let commentTree = $derived(buildCommentTree(comments || []))
+	
+	function toggleReply(commentId: number) {
+		if (replyingTo === commentId) {
+			replyingTo = null
+			replyContent = ''
+		} else {
+			replyingTo = commentId
+			replyContent = ''
+		}
+	}
+	
+	function toggleEdit(commentId: number, content: string) {
+		editingComment = commentId
+		editContent = content
+	}
+	
+	function cancelEdit() {
+		editingComment = null
+		editContent = ''
+	}
 </script>
 
 <svelte:head>
@@ -228,58 +252,26 @@
 			<Separator />
 
 			<!-- 댓글 목록 -->
-			{#if commentTree.length > 0}
-				<div class="space-y-4">
-					{#each commentTree as comment}
-						<div class="space-y-3">
-							<div class="flex gap-3">
-								<Avatar.Root class="h-10 w-10">
-									<Avatar.Fallback class="bg-primary/10 text-primary">
-										{comment.user_display_name?.[0] || '?'}
-									</Avatar.Fallback>
-								</Avatar.Root>
-								
-								<div class="flex-1 space-y-1">
-									<div class="flex items-center gap-2">
-										<span class="font-medium">{comment.user_display_name}</span>
-										<span class="text-xs text-muted-foreground">
-											{new Date(comment.created_at).toLocaleString('ko-KR')}
-										</span>
-									</div>
-									<p class="text-sm">{comment.content}</p>
-								</div>
-							</div>
-
-							<!-- 대댓글 -->
-							{#if comment.replies && comment.replies.length > 0}
-								<div class="ml-12 space-y-3 border-l-2 pl-4">
-									{#each comment.replies as reply}
-										<div class="flex gap-3">
-											<Avatar.Root class="h-8 w-8">
-												<Avatar.Fallback class="bg-muted text-xs">
-													{reply.user_display_name?.[0] || '?'}
-												</Avatar.Fallback>
-											</Avatar.Root>
-											
-											<div class="flex-1 space-y-1">
-												<div class="flex items-center gap-2">
-													<span class="text-sm font-medium">{reply.user_display_name}</span>
-													<span class="text-xs text-muted-foreground">
-														{new Date(reply.created_at).toLocaleString('ko-KR')}
-													</span>
-												</div>
-												<p class="text-sm">{reply.content}</p>
-											</div>
-										</div>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<p class="text-center text-sm text-muted-foreground">첫 댓글을 작성해보세요!</p>
-			{/if}
+{#if commentTree.length > 0}
+	<div class="space-y-4">
+		{#each commentTree as comment}
+			<Comment
+				{comment}
+				{currentUserId}
+				{session}
+				{replyingTo}
+				{editingComment}
+				bind:replyContent
+				bind:editContent
+				onToggleReply={toggleReply}
+				onToggleEdit={toggleEdit}
+				onCancelEdit={cancelEdit}
+			/>
+		{/each}
+	</div>
+{:else}
+	<p class="text-center text-sm text-muted-foreground">첫 댓글을 작성해보세요!</p>
+{/if}
 		</Card.Content>
 	</Card.Root>
 </div>
