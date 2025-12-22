@@ -82,7 +82,7 @@ class Config:
         # 엠엘비파크 (MLBPark)
         "mlbpark": {
             "base_url": "https://mlbpark.donga.com",
-            "list_url": "https://mlbpark.donga.com/mp/b.php?b=bullpen",
+            "list_url": "https://mlbpark.donga.com/mp/b.php?b=bullpen&select=stt&query=1",  # 추천순 정렬
             "site_name": "mlbpark",
             "enabled": True,  # 활성화 (올바른 도메인으로 수정)
             "use_playwright": True,  # Playwright 사용
@@ -99,7 +99,7 @@ class Config:
         # 클리앙 (Clien)
         "clien": {
             "base_url": "https://www.clien.net",
-            "list_url": "https://www.clien.net/service/board/park",  # 자유게시판 (모두의공원)
+            "list_url": "https://www.clien.net/service/board/park?&od=T31&category=0",  # 추천순 정렬
             "site_name": "clien",
             "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # Cloudflare 우회 필요
@@ -116,7 +116,7 @@ class Config:
         # 웃긴대학 (Humoruniv)
         "humoruniv": {
             "base_url": "https://web.humoruniv.com",
-            "list_url": "https://web.humoruniv.com/board/humor/list.html?table=pds",
+            "list_url": "https://web.humoruniv.com/board/humor/list.html?table=humorbest&st=year&year=2024",  # 연간 베스트
             "site_name": "humoruniv",
             "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # JavaScript 렌더링 필요
@@ -133,7 +133,7 @@ class Config:
         # 개드립 (Dogdrip)
         "dogdrip": {
             "base_url": "https://www.dogdrip.net",
-            "list_url": "https://www.dogdrip.net/index.php?mid=dogdrip",
+            "list_url": "https://www.dogdrip.net/dogdripbest",  # 붐업 베스트
             "site_name": "dogdrip",
             "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # JavaScript 렌더링 필요
@@ -167,7 +167,7 @@ class Config:
         # 뽐뿌 (Ppomppu)
         "ppomppu": {
             "base_url": "https://www.ppomppu.co.kr",
-            "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor",
+            "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor&page_type=list&order_type=vote",  # 추천순
             "site_name": "ppomppu",
             "enabled": True,  # 비활성화 (테스트 후 활성화)
             "use_playwright": False,  # requests로 충분
