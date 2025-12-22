@@ -81,18 +81,18 @@ class Config:
         },
         # 엠엘비파크 (MLBPark)
         "mlbpark": {
-            "base_url": "https://www.mlbpark.com",
-            "list_url": "https://www.mlbpark.com/park/list.php?m=search&p=1&b=bullpen&select=stt&query=1",
+            "base_url": "https://mlbpark.donga.com",
+            "list_url": "https://mlbpark.donga.com/mp/b.php?b=bullpen",
             "site_name": "mlbpark",
-            "enabled": False,  # 비활성화 (서버 문제)
-            "use_playwright": False,  # Connection timeout
+            "enabled": True,  # 활성화 (올바른 도메인으로 수정)
+            "use_playwright": True,  # Playwright 사용
             "selectors": {
-                "post_list": "table.tbl_type01 tbody tr",
+                "post_list": "div.talk_list table tbody tr",
                 "post_link": "a.txt",
                 "title": "a.txt",
                 "content": "div.ar_txt",
                 "images": "div.ar_txt img",
-                "date": "td.date",
+                "date": "td:nth-child(4)",
             },
             "date_format": "auto",
         },
