@@ -1,11 +1,11 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card'
 	import { Button } from '$lib/components/ui/button'
-	import { Inbox } from 'lucide-svelte'
+	import { Inbox } from '@lucide/svelte'
 	
 	let { 
-		title = '게시글이 없습니다',
-		description = '아직 크롤링된 게시글이 없습니다.',
+		title = '게시글???�습?�다',
+		description = '?�직 ?�롤링된 게시글???�습?�다.',
 		actionLabel,
 		actionHref
 	}: {

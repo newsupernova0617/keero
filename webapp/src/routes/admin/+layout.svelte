@@ -9,8 +9,8 @@
 	<header class="border-b bg-white shadow-sm">
 		<div class="mx-auto max-w-7xl px-4 py-4">
 			<div class="flex items-center justify-between">
-				<h1 class="text-2xl font-bold text-gray-900">관리자 페이지</h1>
-				<a href="/" class="text-blue-600 hover:underline">← 사이트로 돌아가기</a>
+				<h1 class="text-2xl font-bold text-gray-900">관리자 ?�이지</h1>
+				<a href="/" class="text-blue-600 hover:underline">???�이?�로 ?�아가�?/a>
 			</div>
 		</div>
 	</header>
@@ -24,25 +24,25 @@
 						href="/admin"
 						class="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-200"
 					>
-						📊 대시보드
+						?�� ?�?�보??
 					</a>
 					<a
 						href="/admin/posts"
 						class="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-200"
 					>
-						📝 게시글 관리
+						?�� 게시글 관�?
 					</a>
 					<a
 						href="/admin/users"
 						class="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-200"
 					>
-						👥 사용자 관리
+						?�� ?�용??관�?
 					</a>
 					<a
 						href="/admin/comments"
 						class="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-200"
 					>
-						💬 댓글 관리
+						?�� ?��? 관�?
 					</a>
 				</nav>
 			</aside>

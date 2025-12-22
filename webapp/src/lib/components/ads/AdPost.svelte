@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte'
 
 	interface Props {
-		unitId: string // 애드포스트 유닛 ID
+		unitId: string // ?�드?�스???�닛 ID
 		width?: number
 		height?: number
 		className?: string
@@ -13,7 +13,7 @@
 	let adContainer: HTMLDivElement
 
 	onMount(() => {
-		// 네이버 애드포스트 스크립트 로드
+		// ?�이�??�드?�스???�크립트 로드
 		if (typeof window !== 'undefined' && !(window as any)._naverAdPost) {
 			const script = document.createElement('script')
 			script.src = 'https://ssl.pstatic.net/tveta/libs/ads/mobile/naverAdPost-1.0.0.js'
@@ -21,7 +21,7 @@
 			document.head.appendChild(script)
 		}
 
-		// 광고 초기화
+		// 광고 초기??
 		try {
 			if ((window as any)._naverAdPost) {
 				;(window as any)._naverAdPost.push({
@@ -38,7 +38,7 @@
 
 <div class="ad-wrapper {className}">
 	<div bind:this={adContainer} id="naverAdPost-{unitId}" style="width:{width}px;height:{height}px">
-		<!-- 네이버 애드포스트 광고 영역 -->
+		<!-- ?�이�??�드?�스??광고 ?�역 -->
 	</div>
 </div>
 

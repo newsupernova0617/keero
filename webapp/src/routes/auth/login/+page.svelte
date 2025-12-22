@@ -8,7 +8,7 @@
 
 	let { supabase, session } = $derived(data)
 
-	// 이미 로그인되어 있으면 홈으로 리다이렉트
+	// ?��? 로그?�되???�으�??�으�?리다?�렉??
 	$effect(() => {
 		if (session) {
 			goto('/')
@@ -39,8 +39,8 @@
 <div class="flex min-h-screen items-center justify-center">
 	<Card.Root class="w-full max-w-md">
 		<Card.Header class="text-center">
-			<Card.Title class="text-3xl">로그인</Card.Title>
-			<Card.Description>소셜 계정으로 간편하게 로그인하세요</Card.Description>
+			<Card.Title class="text-3xl">로그??/Card.Title>
+			<Card.Description>?�셜 계정?�로 간편?�게 로그?�하?�요</Card.Description>
 		</Card.Header>
 
 		<Card.Content class="space-y-4">
@@ -67,7 +67,7 @@
 						d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 					/>
 				</svg>
-				Google로 계속하기
+				Google�?계속?�기
 			</Button>
 
 			<Button
@@ -79,12 +79,12 @@
 						d="M12 3C6.477 3 2 6.253 2 10.253c0 2.625 1.771 4.929 4.429 6.253-.184.68-.607 2.261-.697 2.607-.11.423.155.418.327.304.138-.092 2.181-1.456 3.118-2.082.611.088 1.239.133 1.879.133 5.523 0 10-3.253 10-7.253S17.523 3 12 3z"
 					/>
 				</svg>
-				카카오로 계속하기
+				카카?�로 계속?�기
 			</Button>
 
 			<p class="text-center text-xs text-muted-foreground">
-				로그인하면 <a href="/terms" class="underline">이용약관</a> 및
-				<a href="/privacy" class="underline">개인정보처리방침</a>에 동의하는 것으로 간주됩니다.
+				로그?�하�?<a href="/terms" class="underline">?�용?��?</a> �?
+				<a href="/privacy" class="underline">개인?�보처리방침</a>???�의?�는 것으�?간주?�니??
 			</p>
 		</Card.Content>
 	</Card.Root>

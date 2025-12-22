@@ -4,14 +4,14 @@
 	let { onFilterChange }: { onFilterChange: (site: string) => void } = $props()
 	
 	const sites = [
-		{ value: 'all', label: '전체' },
-		{ value: 'ruliweb', label: '루리웹' },
+		{ value: 'all', label: '?�체' },
+		{ value: 'ruliweb', label: '루리?? },
 		{ value: 'fmkorea', label: 'FMKorea' },
 		{ value: 'mlbpark', label: 'MLBPark' },
 		{ value: 'clien', label: 'Clien' },
-		{ value: 'humoruniv', label: '웃긴대학' },
+		{ value: 'humoruniv', label: '?�긴?�?? },
 		{ value: 'dogdrip', label: 'Dogdrip' },
-		{ value: 'todayhumor', label: '오늘의유머' },
+		{ value: 'todayhumor', label: '?�늘?�유�? },
 		{ value: 'ppomppu', label: '뽐뿌' }
 	]
 </script>

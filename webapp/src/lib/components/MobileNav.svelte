@@ -2,7 +2,7 @@
 	import * as Sheet from '$lib/components/ui/sheet'
 	import { Button } from '$lib/components/ui/button'
 	import { Separator } from '$lib/components/ui/separator'
-	import { Menu, Home, Search, LogIn, LogOut, User } from 'lucide-svelte'
+	import { Menu, Home, Search, LogIn, LogOut, User } from '@lucide/svelte'
 	
 	let { session, user }: { session: any; user: any } = $props()
 	let open = $state(false)
@@ -12,7 +12,7 @@
 	<Sheet.Trigger asChild let:builder>
 		<Button builders={[builder]} variant="ghost" size="icon" class="md:hidden">
 			<Menu class="h-5 w-5" />
-			<span class="sr-only">메뉴 열기</span>
+			<span class="sr-only">메뉴 ?�기</span>
 		</Button>
 	</Sheet.Trigger>
 	<Sheet.Content side="left" class="w-[300px] sm:w-[400px]">
@@ -28,7 +28,7 @@
 				class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 			>
 				<Home class="h-4 w-4" />
-				홈
+				??
 			</a>
 			
 			<a
@@ -37,7 +37,7 @@
 				class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 			>
 				<Search class="h-4 w-4" />
-				검색
+				검??
 			</a>
 
 			<Separator />
@@ -55,7 +55,7 @@
 						class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 					>
 						<LogOut class="h-4 w-4" />
-						로그아웃
+						로그?�웃
 					</button>
 				</form>
 			{:else}
@@ -65,7 +65,7 @@
 					class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 				>
 					<LogIn class="h-4 w-4" />
-					로그인
+					로그??
 				</a>
 			{/if}
 		</div>

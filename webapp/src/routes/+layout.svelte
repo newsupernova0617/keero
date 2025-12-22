@@ -6,7 +6,7 @@
 	import type { LayoutData } from './$types'
 	import { Button } from '$lib/components/ui/button'
 	import { Input } from '$lib/components/ui/input'
-	import { Search } from 'lucide-svelte'
+	import { Search } from '@lucide/svelte'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
@@ -41,8 +41,7 @@
 				<div class="flex items-center gap-3">
 					<MobileNav {session} {user} />
 					<a href="/" class="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-						유머 게시판
-					</a>
+						?�머 게시??					</a>
 				</div>
 
 				<!-- Desktop Search -->
@@ -52,7 +51,7 @@
 						<Input
 							type="text"
 							name="q"
-							placeholder="검색..."
+							placeholder="검??.."
 							class="w-full pl-10"
 						/>
 					</div>
@@ -66,8 +65,7 @@
 						<UserMenu {user} />
 					{:else}
 						<Button href="/auth/login" size="sm">
-							로그인
-						</Button>
+							로그??						</Button>
 					{/if}
 				</nav>
 			</div>
@@ -79,7 +77,7 @@
 					<Input
 						type="text"
 						name="q"
-						placeholder="검색..."
+						placeholder="검??.."
 						class="w-full pl-10"
 					/>
 				</div>

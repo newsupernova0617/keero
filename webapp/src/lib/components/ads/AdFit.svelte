@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte'
 
 	interface Props {
-		unit: string // 애드핏 유닛 ID
+		unit: string // ?�드???�닛 ID
 		width?: number
 		height?: number
 		className?: string
@@ -13,7 +13,7 @@
 	let adContainer: HTMLDivElement
 
 	onMount(() => {
-		// 카카오 애드핏 스크립트 로드
+		// 카카???�드???�크립트 로드
 		if (typeof window !== 'undefined' && !(window as any).kakaoPixel) {
 			const script = document.createElement('script')
 			script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js'
@@ -21,7 +21,7 @@
 			document.head.appendChild(script)
 		}
 
-		// 광고 초기화
+		// 광고 초기??
 		try {
 			if (adContainer) {
 				const ins = document.createElement('ins')
@@ -46,7 +46,7 @@
 
 <div class="ad-wrapper {className}">
 	<div bind:this={adContainer} class="adfit-container">
-		<!-- 카카오 애드핏 광고 영역 -->
+		<!-- 카카???�드??광고 ?�역 -->
 	</div>
 </div>
 

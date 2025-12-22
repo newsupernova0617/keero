@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Separator } from '$lib/components/ui/separator'
-	import { Github, Mail, Heart } from 'lucide-svelte'
+	import { Github, Mail, Heart } from '@lucide/svelte'
 </script>
 
 <footer class="border-t bg-card">
@@ -8,9 +8,9 @@
 		<div class="grid gap-8 md:grid-cols-3">
 			<!-- About -->
 			<div>
-				<h3 class="mb-3 text-lg font-semibold">유머 게시판</h3>
+				<h3 class="mb-3 text-lg font-semibold">?�머 게시??/h3>
 				<p class="text-sm text-muted-foreground">
-					여러 커뮤니티의 재미있는 유머를 한곳에서 만나보세요.
+					?�러 커�??�티???��??�는 ?�머�??�곳?�서 만나보세??
 				</p>
 			</div>
 
@@ -20,17 +20,17 @@
 				<ul class="space-y-2 text-sm">
 					<li>
 						<a href="/about" class="text-muted-foreground transition hover:text-foreground">
-							소개
+							?�개
 						</a>
 					</li>
 					<li>
 						<a href="/privacy" class="text-muted-foreground transition hover:text-foreground">
-							개인정보처리방침
+							개인?�보처리방침
 						</a>
 					</li>
 					<li>
 						<a href="/terms" class="text-muted-foreground transition hover:text-foreground">
-							이용약관
+							?�용?��?
 						</a>
 					</li>
 				</ul>
@@ -38,7 +38,7 @@
 
 			<!-- Social -->
 			<div>
-				<h3 class="mb-3 text-lg font-semibold">소셜</h3>
+				<h3 class="mb-3 text-lg font-semibold">?�셜</h3>
 				<div class="flex gap-4">
 					<a
 						href="https://github.com"
@@ -63,7 +63,7 @@
 		<Separator class="my-6" />
 
 		<div class="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
-			<p>© 2024 유머 게시판. All rights reserved.</p>
+			<p>© 2024 ?�머 게시?? All rights reserved.</p>
 			<p class="flex items-center gap-1">
 				Made with <Heart class="h-4 w-4 fill-red-500 text-red-500" /> by Your Team
 			</p>
