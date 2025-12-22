@@ -4,8 +4,8 @@
 	import { Inbox } from '@lucide/svelte'
 	
 	let { 
-		title = '게시글???�습?�다',
-		description = '?�직 ?�롤링된 게시글???�습?�다.',
+		title = '게시글이 없습니다',
+		description = '아직 크롤링된 게시글이 없습니다.',
 		actionLabel,
 		actionHref
 	}: {

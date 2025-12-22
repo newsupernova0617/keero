@@ -9,11 +9,13 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Trigger asChild let:builder>
-		<Button builders={[builder]} variant="ghost" size="icon" class="md:hidden">
-			<Menu class="h-5 w-5" />
-			<span class="sr-only">메뉴 ?�기</span>
-		</Button>
+	<Sheet.Trigger>
+		{#snippet child({ props })}
+			<Button {...props} variant="ghost" size="icon" class="md:hidden">
+				<Menu class="h-5 w-5" />
+				<span class="sr-only">메뉴 열기</span>
+			</Button>
+		{/snippet}
 	</Sheet.Trigger>
 	<Sheet.Content side="left" class="w-[300px] sm:w-[400px]">
 		<Sheet.Header>
@@ -28,7 +30,7 @@
 				class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 			>
 				<Home class="h-4 w-4" />
-				??
+				홈
 			</a>
 			
 			<a
@@ -37,7 +39,7 @@
 				class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 			>
 				<Search class="h-4 w-4" />
-				검??
+				검색
 			</a>
 
 			<Separator />
@@ -55,7 +57,7 @@
 						class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 					>
 						<LogOut class="h-4 w-4" />
-						로그?�웃
+						로그아웃
 					</button>
 				</form>
 			{:else}
@@ -65,7 +67,7 @@
 					class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
 				>
 					<LogIn class="h-4 w-4" />
-					로그??
+					로그인
 				</a>
 			{/if}
 		</div>

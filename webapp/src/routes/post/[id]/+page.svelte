@@ -11,7 +11,7 @@
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
-	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare, User } from 'lucide-svelte'
+	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare, User } from '@lucide/svelte'
 
 	let { data }: { data: PageData } = $props()
 	let { post, images, comments, session } = $derived(data)

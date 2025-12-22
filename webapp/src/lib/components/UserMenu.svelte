@@ -6,44 +6,50 @@
 	
 	let { user }: { user: any } = $props()
 	
-	// ?�용???�름 �?글??
+	// 사용자 이름 첫 글자
 	let initial = $derived(user?.email?.[0]?.toUpperCase() || 'U')
 </script>
 
 <DropdownMenu.Root>
-	<DropdownMenu.Trigger asChild let:builder>
-		<Button builders={[builder]} variant="ghost" class="relative h-10 w-10 rounded-full">
-			<Avatar.Root class="h-10 w-10">
-				<Avatar.Fallback class="bg-primary text-primary-foreground">
-					{initial}
-				</Avatar.Fallback>
-			</Avatar.Root>
-		</Button>
+	<DropdownMenu.Trigger>
+		{#snippet child({ props })}
+			<Button {...props} variant="ghost" class="relative h-10 w-10 rounded-full">
+				<Avatar.Root class="h-10 w-10">
+					<Avatar.Fallback class="bg-primary text-primary-foreground">
+						{initial}
+					</Avatar.Fallback>
+				</Avatar.Root>
+			</Button>
+		{/snippet}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content class="w-56" align="end">
 		<DropdownMenu.Label>
 			<div class="flex flex-col space-y-1">
-				<p class="text-sm font-medium leading-none">??계정</p>
+				<p class="text-sm font-medium leading-none">내 계정</p>
 				<p class="text-xs leading-none text-muted-foreground">
 					{user?.email}
 				</p>
 			</div>
 		</DropdownMenu.Label>
 		<DropdownMenu.Separator />
-		<DropdownMenu.Item href="/profile">
+	<DropdownMenu.Item>
+		<a href="/profile" class="flex w-full items-center">
 			<User class="mr-2 h-4 w-4" />
-			<span>?�로??/span>
-		</DropdownMenu.Item>
-		<DropdownMenu.Item href="/settings">
+			<span>프로필</span>
+		</a>
+	</DropdownMenu.Item>
+	<DropdownMenu.Item>
+		<a href="/settings" class="flex w-full items-center">
 			<Settings class="mr-2 h-4 w-4" />
-			<span>?�정</span>
-		</DropdownMenu.Item>
+			<span>설정</span>
+		</a>
+	</DropdownMenu.Item>
 		<DropdownMenu.Separator />
-		<DropdownMenu.Item asChild>
+		<DropdownMenu.Item>
 			<form method="POST" action="/auth/signout" class="w-full">
 				<button type="submit" class="flex w-full items-center">
 					<LogOut class="mr-2 h-4 w-4" />
-					<span>로그?�웃</span>
+					<span>로그아웃</span>
 				</button>
 			</form>
 		</DropdownMenu.Item>

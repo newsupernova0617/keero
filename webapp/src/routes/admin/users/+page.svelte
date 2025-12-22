@@ -5,11 +5,11 @@
 </script>
 
 <svelte:head>
-	<title>?�용??관�?/title>
+	<title>사용자 관리</title>
 </svelte:head>
 
 <div class="space-y-6">
-	<h2 class="text-2xl font-bold text-gray-900">?�용??관�?/h2>
+	<h2 class="text-2xl font-bold text-gray-900">사용자 관리</h2>
 
 	<div class="rounded-lg border border-gray-200 bg-white">
 		<table class="w-full">
@@ -17,16 +17,16 @@
 				<tr>
 					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">ID</th>
 					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-						?�메??
+						이메일
 					</th>
 					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-						?�름
+						이름
 					</th>
 					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
 						권한
 					</th>
 					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-						가?�일
+						가입일
 					</th>
 				</tr>
 			</thead>
@@ -44,7 +44,7 @@
 								class:bg-gray-100={user.role !== 99}
 								class:text-gray-800={user.role !== 99}
 							>
-								{user.role === 99 ? '관리자' : '?�용??}
+								{user.role === 99 ? '관리자' : '사용자'}
 							</span>
 						</td>
 						<td class="px-6 py-4 text-sm text-gray-600">

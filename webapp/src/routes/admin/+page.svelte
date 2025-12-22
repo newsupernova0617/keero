@@ -5,26 +5,26 @@
 </script>
 
 <svelte:head>
-	<title>관리자 ?�?�보??/title>
+	<title>관리자 대시보드</title>
 </svelte:head>
 
 <div class="space-y-6">
-	<h2 class="text-2xl font-bold text-gray-900">?�?�보??/h2>
+	<h2 class="text-2xl font-bold text-gray-900">대시보드</h2>
 
-	<!-- ?�계 카드 -->
+	<!-- 통계 카드 -->
 	<div class="grid gap-6 md:grid-cols-3">
 		<div class="rounded-lg border border-gray-200 bg-white p-6">
-			<div class="text-sm font-medium text-gray-600">�?게시글</div>
+			<div class="text-sm font-medium text-gray-600">총 게시글</div>
 			<div class="mt-2 text-3xl font-bold text-gray-900">{data.totalPosts}</div>
 		</div>
 
 		<div class="rounded-lg border border-gray-200 bg-white p-6">
-			<div class="text-sm font-medium text-gray-600">�??�용??/div>
+			<div class="text-sm font-medium text-gray-600">총 사용자</div>
 			<div class="mt-2 text-3xl font-bold text-gray-900">{data.totalUsers}</div>
 		</div>
 
 		<div class="rounded-lg border border-gray-200 bg-white p-6">
-			<div class="text-sm font-medium text-gray-600">�??��?</div>
+			<div class="text-sm font-medium text-gray-600">총 댓글</div>
 			<div class="mt-2 text-3xl font-bold text-gray-900">{data.totalComments}</div>
 		</div>
 	</div>
@@ -51,7 +51,7 @@
 							href="/admin/posts?id={post.id}"
 							class="text-sm text-blue-600 hover:underline"
 						>
-							관�?
+							관리
 						</a>
 					</div>
 				</div>

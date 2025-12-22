@@ -15,7 +15,7 @@
 	let selectedSite = $state('all')
 	let isLoading = $state(false)
 	
-	// ?�터링된 게시글
+	// 필터링된 게시글
 	let filteredPosts = $derived(
 		selectedSite === 'all' 
 			? data.posts 
@@ -28,18 +28,18 @@
 </script>
 
 <svelte:head>
-	<title>?�머 게시??- ?��??�는 ?�머, ?�긴 글 모음</title>
+	<title>유머 게시판 - 재미있는 유머, 웃긴 글 모음</title>
 	<meta
 		name="description"
-		content="FMKorea, 루리???�에???�선???��??�는 ?�머?� ?�긴 글???�곳?�서 만나보세?? 매일 ?�데?�트?�는 최신 ?�머 게시글."
+		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요. 매일 업데이트되는 최신 유머 게시글."
 	/>
-	<meta name="keywords" content="?�머, ?�긴글, ?��?, 커�??�티, FMKorea, 루리?? 베스?��?" />
+	<meta name="keywords" content="유머, 웃긴글, 재미, 커뮤니티, FMKorea, 루리웹, 베스트글" />
 
 	<!-- Open Graph -->
-	<meta property="og:title" content="?�머 게시??- ?��??�는 ?�머, ?�긴 글 모음" />
+	<meta property="og:title" content="유머 게시판 - 재미있는 유머, 웃긴 글 모음" />
 	<meta
 		property="og:description"
-		content="FMKorea, 루리???�에???�선???��??�는 ?�머?� ?�긴 글???�곳?�서 만나보세??"
+		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content="https://yourdomain.com/" />
@@ -47,14 +47,14 @@
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="?�머 게시??- ?��??�는 ?�머, ?�긴 글 모음" />
+	<meta name="twitter:title" content="유머 게시판 - 재미있는 유머, 웃긴 글 모음" />
 	<meta
 		name="twitter:description"
-		content="FMKorea, 루리???�에???�선???��??�는 ?�머?� ?�긴 글???�곳?�서 만나보세??"
+		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
 	<meta name="twitter:image" content="https://yourdomain.com/og-image.png" />
 
-	<!-- 추�? SEO -->
+	<!-- 추가 SEO -->
 	<link rel="canonical" href="https://yourdomain.com/" />
 </svelte:head>
 
@@ -64,7 +64,8 @@
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">최신 게시글</h1>
 			<p class="mt-1 text-sm text-muted-foreground">
-				?�러 커�??�티???��??�는 ?�머�??�눈??			</p>
+				여러 커뮤니티의 재미있는 유머를 한눈에
+			</p>
 		</div>
 		<Badge variant="secondary" class="w-fit">
 			{filteredPosts.length}개의 게시글
@@ -83,10 +84,10 @@
 		</div>
 	{:else if filteredPosts.length === 0}
 		<EmptyState 
-			title="게시글???�습?�다"
+			title="게시글이 없습니다"
 			description={selectedSite === 'all' 
-				? '?�직 ?�롤링된 게시글???�습?�다.' 
-				: `${selectedSite}?�서 ?�롤링된 게시글???�습?�다.`}
+				? '아직 크롤링된 게시글이 없습니다.' 
+				: `${selectedSite}에서 크롤링된 게시글이 없습니다.`}
 		/>
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -131,7 +132,7 @@
 					</Card.Root>
 				</a>
 
-				<!-- ?�드 ??광고 (N개마?? -->
+				<!-- 피드 내 광고 (N개마다) -->
 				{#if (index + 1) % AD_RULES.feedInterval === 0 && index < filteredPosts.length - 1}
 					<div class="col-span-full">
 						{#if AD_CONFIG.adsense.enabled}

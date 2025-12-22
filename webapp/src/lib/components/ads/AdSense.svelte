@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte'
 
 	interface Props {
-		slot: string // 광고 ?�롯 ID
+		slot: string // 광고 슬롯 ID
 		format?: 'auto' | 'rectangle' | 'horizontal' | 'vertical'
 		responsive?: boolean
 		className?: string
@@ -13,7 +13,7 @@
 	let adContainer: HTMLElement
 
 	onMount(() => {
-		// AdSense ?�크립트 로드
+		// AdSense 스크립트 로드
 		if (typeof window !== 'undefined' && !(window as any).adsbygoogle) {
 			const script = document.createElement('script')
 			script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX'
@@ -22,7 +22,7 @@
 			document.head.appendChild(script)
 		}
 
-		// 광고 초기??
+		// 광고 초기화
 		try {
 			;((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
 		} catch (e) {
