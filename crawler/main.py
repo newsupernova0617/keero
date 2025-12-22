@@ -8,6 +8,7 @@
 - 에러 핸들링 및 로깅
 """
 
+import argparse
 import logging
 import random
 import time
@@ -134,7 +135,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
                     and consecutive_duplicates >= early_stop_config["consecutive_duplicates"]
                 ):
                     logger.info(
-                        f"Early Stop: {consecutive_duplicates} consecutive duplicates found"
+                        f"⏹️  Early Stop: {consecutive_duplicates} consecutive duplicates found"
                     )
                     stats["early_stopped"] = True
                     
@@ -178,43 +179,43 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
         # 페이지 요약
         page_new = stats["new_posts"] - (stats.get("prev_new", 0))
         stats["prev_new"] = stats["new_posts"]
-        logger.info(f"   📊 Page {page_num} summary: {page_new} new, {page_duplicates} duplicates")
+        logger.info(
+            f"   Page {page_num} summary: {page_new} new, {page_duplicates} duplicates"
+        )
 
-        # Early Stop: 페이지 중복 비율 체크
-        if page_total > 0:
-            duplicate_ratio = page_duplicates / page_total
-            if (
-                early_stop_config["enabled"]
-                and duplicate_ratio >= early_stop_config["page_duplicate_ratio"]
-            ):
-                logger.info(f"🛑 Early Stop: Page {page_num} has {duplicate_ratio:.0%} duplicates")
-                stats["early_stopped"] = True
-                
-                # 마지막 커밋 (배치 모드)
-                if batch_enabled and posts_since_commit > 0:
-                    db.flush()
-                    stats["commits"] += 1
-                    logger.info(f"   💾 Final commit: {posts_since_commit} posts")
-                
-                return stats
-    
-    # 마지막 커밋 (배치 모드에서 남은 데이터 커밋)
+        # Early Stop: 페이지 중복률 체크
+        if (
+            early_stop_config["enabled"]
+            and page_total > 0
+            and (page_duplicates / page_total) >= early_stop_config["page_duplicate_ratio"]
+        ):
+            logger.info(
+                f"⏹️  Early Stop: Page duplicate ratio {page_duplicates}/{page_total} "
+                f"= {page_duplicates/page_total:.1%}"
+            )
+            stats["early_stopped"] = True
+            break
+
+    # 최종 커밋 (배치 모드에서 남은 데이터)
     if batch_enabled and posts_since_commit > 0:
         db.flush()
         stats["commits"] += 1
-        logger.info(f"   💾 Final commit: {posts_since_commit} posts")
+        logger.info(f"💾 Final commit: {posts_since_commit} posts")
 
     return stats
 
 
-def run_crawler():
+def run_crawler(site_filter=None):
     """
     크롤러 실행 메인 로직 (다중 사이트 지원)
 
     Config.TARGET_SITES에 정의된 모든 활성화된 사이트를 순회하며
     각 사이트마다 crawl_site()를 호출하여 크롤링을 수행합니다.
+    
+    Args:
+        site_filter: 특정 사이트만 크롤링 (예: 'ruliweb', 'fmkorea')
     """
-    logger.info("Crawler started")
+    logger.info(f"Crawler started{f' (site: {site_filter})' if site_filter else ''}")
 
     try:
         from config import Config
@@ -228,7 +229,7 @@ def run_crawler():
         db = DatabaseManager(
             db_path=Config.DATABASE["path"],
             r2_config=Config.R2_CONFIG,
-            auto_commit=not batch_enabled,  # 배치 모드면 수동 커밋
+            auto_commit=not batch_enabled,  # 배치 모드면 auto_commit=False
         )
 
         total_stats = {
@@ -241,21 +242,25 @@ def run_crawler():
 
         # 활성화된 모든 사이트 크롤링
         for site_key, site_config in Config.TARGET_SITES.items():
+            # site_filter가 지정되었으면 해당 사이트만 크롤링
+            if site_filter and site_key != site_filter:
+                continue
+                
             if not site_config.get("enabled", True):
                 logger.info(f"Skipping disabled site: {site_key}")
                 continue
 
+            total_stats["sites"] += 1
             stats = crawl_site(site_key, site_config, db, Scraper)
 
-            total_stats["sites"] += 1
             total_stats["new_posts"] += stats["new_posts"]
             total_stats["duplicates"] += stats["duplicates"]
             total_stats["images_saved"] += stats["images_saved"]
             total_stats["failed"] += stats["failed"]
 
             logger.info(
-                f"Site {site_key} completed: "
-                f"{stats['new_posts']} new, {stats['duplicates']} duplicates, "
+                f"Site {site_key} completed: {stats['new_posts']} new, "
+                f"{stats['duplicates']} duplicates, "
                 f"{stats['failed']} failed, {stats['images_saved']} images"
                 + (" (early stopped)" if stats["early_stopped"] else "")
             )
@@ -274,14 +279,17 @@ def run_crawler():
 
 def main():
     """메인 함수"""
-    run_crawler()
-
-    # TODO: 스케줄러 설정 (선택사항)
-    # from apscheduler.schedulers.blocking import BlockingScheduler
-    # scheduler = BlockingScheduler()
-    # scheduler.add_job(run_crawler, 'interval', hours=2)
-    # logger.info("Scheduler started. Press Ctrl+C to exit.")
-    # scheduler.start()
+    parser = argparse.ArgumentParser(description='Community humor crawler')
+    parser.add_argument('--site', type=str, help='Crawl specific site only (e.g., ruliweb, fmkorea)')
+    args = parser.parse_args()
+    
+    if args.site:
+        # 단일 사이트 크롤링
+        logger.info(f"Crawling single site: {args.site}")
+        run_crawler(site_filter=args.site)
+    else:
+        # 모든 사이트 크롤링
+        run_crawler()
 
 
 if __name__ == "__main__":
