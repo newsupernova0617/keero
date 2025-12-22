@@ -1,0 +1,50 @@
+// 광고 설정
+export const AD_CONFIG = {
+    // Google AdSense
+    adsense: {
+        enabled: false, // AdSense 승인 후 true로 변경
+        client: 'ca-pub-XXXXXXXXXXXXXXXX', // 실제 AdSense ID로 변경
+        slots: {
+            header: '1234567890', // 헤더 배너
+            footer: '1234567891', // 푸터 배너
+            inFeed: '1234567892', // 피드 내 광고
+            inArticle: '1234567893', // 본문 중간 광고
+            sidebar: '1234567894' // 사이드바 광고
+        }
+    },
+
+    // 네이버 애드포스트
+    adpost: {
+        enabled: true, // 기본 활성화
+        units: {
+            header: 'UNIT-XXXXXXXX-1', // 헤더 배너
+            footer: 'UNIT-XXXXXXXX-2', // 푸터 배너
+            inFeed: 'UNIT-XXXXXXXX-3', // 피드 내 광고
+            inArticle: 'UNIT-XXXXXXXX-4' // 본문 중간 광고
+        }
+    },
+
+    // 카카오 애드핏
+    adfit: {
+        enabled: false, // AdSense 미승인 시 true로 변경
+        units: {
+            mobile: 'DAN-XXXXXXXXXXXXXXXX', // 모바일 배너
+            sidebar: 'DAN-YYYYYYYYYYYYYYYY' // 사이드바
+        }
+    }
+}
+
+// 광고 표시 규칙
+export const AD_RULES = {
+    // 피드 광고 간격 (N개 게시글마다)
+    feedInterval: 6,
+
+    // 본문 광고 위치 (본문 길이의 N%)
+    articlePosition: 0.5,
+
+    // 모바일에서만 표시할 광고
+    mobileOnly: ['adfit'],
+
+    // 데스크톱에서만 표시할 광고
+    desktopOnly: []
+}
