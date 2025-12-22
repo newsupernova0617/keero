@@ -50,7 +50,7 @@ class Config:
             "base_url": "https://www.fmkorea.com",
             "list_url": "https://www.fmkorea.com/best",
             "site_name": "fmkorea",
-            "enabled": False,  # HTTP 430 에러로 인해 비활성화
+            "enabled": False,  # 비활성화 (테스트 필요)
             "selectors": {
                 "post_list": "div.fm_best_widget > ul li.li",
                 "post_link": "h3.title a.hotdeal_var8",
@@ -61,21 +61,117 @@ class Config:
             },
             "date_format": "auto",  # 2025.12.21 17:00 형식 자동 파싱
         },
-        # 실제 사이트: 루리웹
+        # 실제 사이트: 루리웹 유머 베스트
         "ruliweb": {
             "base_url": "https://bbs.ruliweb.com",
-            "list_url": "https://bbs.ruliweb.com/community/board/300143",
+            "list_url": "https://bbs.ruliweb.com/best/humor",
             "site_name": "ruliweb",
             "enabled": True,  # 활성화
             "selectors": {
-                "post_list": "tr.table_body",
-                "post_link": "a.subject_link.deco",
-                "title": "span.subject_text",
+                "post_list": "table.board_list_table tbody tr",
+                "post_link": "a.subject_link",
+                "title": "a.subject_link",
                 "content": "div.view_content",
                 "images": "div.view_content img",
                 "date": "td.time",
             },
             "date_format": "auto",  # HH:MM 또는 YYYY.MM.DD 형식 자동 파싱
+        },
+        # 엠엘비파크 (MLBPark)
+        "mlbpark": {
+            "base_url": "https://www.mlbpark.com",
+            "list_url": "https://www.mlbpark.com/park/list.php?m=search&p=1&b=bullpen&select=stt&query=1",
+            "site_name": "mlbpark",
+            "enabled": False,  # 비활성화 (테스트 필요)
+            "selectors": {
+                "post_list": "table.tbl_type01 tbody tr",
+                "post_link": "a.txt",
+                "title": "a.txt",
+                "content": "div.ar_txt",
+                "images": "div.ar_txt img",
+                "date": "td.date",
+            },
+            "date_format": "auto",
+        },
+        # 클리앙 (Clien)
+        "clien": {
+            "base_url": "https://www.clien.net",
+            "list_url": "https://www.clien.net/service/board/humor",
+            "site_name": "clien",
+            "enabled": False,  # 비활성화 (테스트 필요)
+            "selectors": {
+                "post_list": "div.list_content div.list_item",
+                "post_link": "a.list_subject",
+                "title": "span.subject_fixed",
+                "content": "div.post_article",
+                "images": "div.post_article img",
+                "date": "span.time",
+            },
+            "date_format": "auto",
+        },
+        # 웃긴대학 (Humoruniv)
+        "humoruniv": {
+            "base_url": "https://www.humoruniv.com",
+            "list_url": "https://www.humoruniv.com/board/humor/list.html?table=pds",
+            "site_name": "humoruniv",
+            "enabled": False,  # 비활성화 (테스트 필요)
+            "selectors": {
+                "post_list": "table.bd_list tbody tr",
+                "post_link": "a.subject",
+                "title": "a.subject",
+                "content": "div.board_body",
+                "images": "div.board_body img",
+                "date": "td.datetime",
+            },
+            "date_format": "auto",
+        },
+        # 개드립 (Dogdrip)
+        "dogdrip": {
+            "base_url": "https://www.dogdrip.net",
+            "list_url": "https://www.dogdrip.net/index.php?mid=dogdrip",
+            "site_name": "dogdrip",
+            "enabled": False,  # 비활성화 (봇 차단)
+            "selectors": {
+                "post_list": "table.ed tbody tr",
+                "post_link": "a.ed_link",
+                "title": "a.ed_link",
+                "content": "div.xe_content",
+                "images": "div.xe_content img",
+                "date": "td.time",
+            },
+            "date_format": "auto",
+        },
+        # 오늘의유머 (TodayHumor)
+        "todayhumor": {
+            "base_url": "http://www.todayhumor.co.kr",
+            "list_url": "http://www.todayhumor.co.kr/board/list.php?table=bestofbest",
+            "site_name": "todayhumor",
+            "enabled": False,  # 비활성화 (테스트 필요)
+            "selectors": {
+                "post_list": "table.table_list tbody tr",
+                "post_link": "td.subject a",
+                "title": "td.subject a",
+                "content": "div.viewbody",
+                "images": "div.viewbody img",
+                "date": "td.date",
+            },
+            "date_format": "auto",
+        },
+        # 뽐뿌 (Ppomppu)
+        "ppomppu": {
+            "base_url": "https://www.ppomppu.co.kr",
+            "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor",
+            "site_name": "ppomppu",
+            "enabled": False,  # 비활성화 (테스트 필요)
+            "selectors": {
+                "post_list": "table tbody tr",
+                "post_link": "td.list_title a",
+                "title": "td.list_title a",  
+                "content": "div.board-contents",
+                "images": "div.board-contents img",
+                "date": "td.list_time",
+            },
+            "date_format": "auto",
         },
     }
 

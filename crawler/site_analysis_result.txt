@@ -1,0 +1,29 @@
+﻿
+================================================================================
+Testing: FMKOREA - https://www.fmkorea.com/best
+================================================================================
+Status: 430
+python : Traceback (most recent call last):
+위치 줄:1 문자:1
++ python analyze_sites.py 2>&1 | Out-File -FilePath site_analy
+sis_resul ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most  
+   recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\yj437\OneDrive\Desktop\coding_windows\aagag_c
+lone\crawler\analyze_sites.py", line 30, in <module>
+    print(f"  \u26a0\ufe0f Failed to fetch")
+UnicodeEncodeError: 'cp949' codec can't encode character '\u26
+a0' in position 2: illegal multibyte sequence
+
+During handling of the above exception, another exception occu
+rred:
+
+Traceback (most recent call last):
+  File "C:\Users\yj437\OneDrive\Desktop\coding_windows\aagag_c
+lone\crawler\analyze_sites.py", line 64, in <module>
+    print(f"  \u274c Error: {str(e)[:100]}")
+UnicodeEncodeError: 'cp949' codec can't encode character '\u27
+4c' in position 2: illegal multibyte sequence
