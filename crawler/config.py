@@ -50,7 +50,8 @@ class Config:
             "base_url": "https://www.fmkorea.com",
             "list_url": "https://www.fmkorea.com/best",
             "site_name": "fmkorea",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (보류)
+            "use_playwright": False,  # Rate limiting 문제
             "selectors": {
                 "post_list": "div.fm_best_widget > ul li.li",
                 "post_link": "h3.title a.hotdeal_var8",
@@ -67,6 +68,7 @@ class Config:
             "list_url": "https://bbs.ruliweb.com/best/humor",
             "site_name": "ruliweb",
             "enabled": True,  # 활성화
+            "use_playwright": False,  # requests 사용
             "selectors": {
                 "post_list": "table.board_list_table tbody tr",
                 "post_link": "a.subject_link",
@@ -82,7 +84,8 @@ class Config:
             "base_url": "https://www.mlbpark.com",
             "list_url": "https://www.mlbpark.com/park/list.php?m=search&p=1&b=bullpen&select=stt&query=1",
             "site_name": "mlbpark",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (서버 문제)
+            "use_playwright": False,  # Connection timeout
             "selectors": {
                 "post_list": "table.tbl_type01 tbody tr",
                 "post_link": "a.txt",
@@ -96,13 +99,14 @@ class Config:
         # 클리앙 (Clien)
         "clien": {
             "base_url": "https://www.clien.net",
-            "list_url": "https://www.clien.net/service/board/humor",
+            "list_url": "https://www.clien.net/service/board/park",  # 자유게시판 (모두의공원)
             "site_name": "clien",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "use_playwright": True,  # Cloudflare 우회 필요
             "selectors": {
-                "post_list": "div.list_content div.list_item",
+                "post_list": "div.list_item",
                 "post_link": "a.list_subject",
-                "title": "span.subject_fixed",
+                "title": "a.list_subject",
                 "content": "div.post_article",
                 "images": "div.post_article img",
                 "date": "span.time",
@@ -111,14 +115,15 @@ class Config:
         },
         # 웃긴대학 (Humoruniv)
         "humoruniv": {
-            "base_url": "https://www.humoruniv.com",
-            "list_url": "https://www.humoruniv.com/board/humor/list.html?table=pds",
+            "base_url": "https://web.humoruniv.com",
+            "list_url": "https://web.humoruniv.com/board/humor/list.html?table=pds",
             "site_name": "humoruniv",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "use_playwright": True,  # JavaScript 렌더링 필요
             "selectors": {
-                "post_list": "table.bd_list tbody tr",
-                "post_link": "a.subject",
-                "title": "a.subject",
+                "post_list": "table tr",
+                "post_link": "a[href*='read']",
+                "title": "a[href*='read']",
                 "content": "div.board_body",
                 "images": "div.board_body img",
                 "date": "td.datetime",
@@ -130,14 +135,15 @@ class Config:
             "base_url": "https://www.dogdrip.net",
             "list_url": "https://www.dogdrip.net/index.php?mid=dogdrip",
             "site_name": "dogdrip",
-            "enabled": False,  # 비활성화 (봇 차단)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "use_playwright": True,  # JavaScript 렌더링 필요
             "selectors": {
-                "post_list": "table.ed tbody tr",
-                "post_link": "a.ed_link",
-                "title": "a.ed_link",
+                "post_list": "li.ed",
+                "post_link": "a",
+                "title": "a",
                 "content": "div.xe_content",
                 "images": "div.xe_content img",
-                "date": "td.time",
+                "date": "span.time",
             },
             "date_format": "auto",
         },
@@ -146,7 +152,8 @@ class Config:
             "base_url": "http://www.todayhumor.co.kr",
             "list_url": "http://www.todayhumor.co.kr/board/list.php?table=bestofbest",
             "site_name": "todayhumor",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "use_playwright": False,  # requests로 충분
             "selectors": {
                 "post_list": "table.table_list tbody tr",
                 "post_link": "td.subject a",
@@ -162,7 +169,8 @@ class Config:
             "base_url": "https://www.ppomppu.co.kr",
             "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor",
             "site_name": "ppomppu",
-            "enabled": False,  # 비활성화 (테스트 필요)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
+            "use_playwright": False,  # requests로 충분
             "selectors": {
                 "post_list": "table tbody tr",
                 "post_link": "td.list_title a",
@@ -186,6 +194,12 @@ class Config:
             "enabled": True,
             "consecutive_duplicates": 5,  # 연속 N개 중복 시 중단
             "page_duplicate_ratio": 0.8,  # 페이지의 N% 중복 시 중단
+        },
+        # Batch Commit: DB 잠금 최소화
+        "batch_commit": {
+            "enabled": True,
+            "chunk_size": 20,  # N개 게시글마다 커밋 (권장: 10~50)
+            "max_time_seconds": 5,  # N초마다 커밋 (권장: 3~10)
         },
     }
 

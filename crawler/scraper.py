@@ -37,22 +37,24 @@ class ParseError(Exception):
 class Scraper:
     """웹 크롤러 클래스"""
 
-    def __init__(self, base_url: str, selectors: Dict[str, str], list_url: Optional[str] = None, user_agent: Optional[str] = None):
+    def __init__(self, base_url: str, selectors: Dict[str, str], list_url: Optional[str] = None, user_agent: Optional[str] = None, use_playwright: bool = False):
         """
         Args:
             base_url: 타겟 사이트 기본 URL
             selectors: CSS 선택자 딕셔너리
             list_url: 게시글 목록 URL (None이면 base_url/list 사용)
             user_agent: User-Agent 문자열 (None이면 기본값 사용)
+            use_playwright: Playwright 사용 여부 (True=Playwright, False=requests)
         """
         self.base_url = base_url
         self.list_url = list_url or f"{base_url}/list"
         self.selectors = selectors
+        self.use_playwright = use_playwright
         self.session = requests.Session()
         
         # User-Agent 설정 (외부에서 주입 가능)
-        ua = user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        self.session.headers.update({"User-Agent": ua})
+        self.user_agent = user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        self.session.headers.update({"User-Agent": self.user_agent})
 
     def fetch_page(self, url: str) -> BeautifulSoup:
         """
@@ -67,6 +69,11 @@ class Scraper:
         Raises:
             FetchError: HTTP 요청 실패 시
         """
+        # Playwright 사용 시
+        if self.use_playwright:
+            return self.fetch_page_playwright(url)
+        
+        # requests 사용 시
         try:
             response = self.session.get(url, timeout=30)
             response.raise_for_status()
@@ -81,6 +88,42 @@ class Scraper:
             raise FetchError(f"Timeout: {url}") from e
         except requests.RequestException as e:
             raise FetchError(f"Network Error: {url} - {e}") from e
+
+    def fetch_page_playwright(self, url: str) -> BeautifulSoup:
+        """
+        Playwright로 페이지 HTML 가져오기 (JavaScript 렌더링 지원)
+
+        Args:
+            url: 페이지 URL
+
+        Returns:
+            BeautifulSoup 객체
+
+        Raises:
+            FetchError: 페이지 로드 실패 시
+        """
+        try:
+            from playwright.sync_api import sync_playwright
+            
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    user_agent=self.user_agent
+                )
+                page = context.new_page()
+                
+                # 페이지 로드
+                page.goto(url, wait_until='domcontentloaded', timeout=30000)
+                time.sleep(2)  # 추가 대기 (동적 콘텐츠)
+                
+                # HTML 가져오기
+                html = page.content()
+                browser.close()
+                
+                return BeautifulSoup(html, "lxml")
+                
+        except Exception as e:
+            raise FetchError(f"Playwright Error: {url} - {e}") from e
 
     def fetch_page_with_retry(
         self, url: str, max_retries: int = 3

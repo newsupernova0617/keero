@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def crawl_site(site_key: str, site_config: dict, db, scraper_class):
     """
-    단일 사이트 크롤링 (Early Stop 지원)
+    단일 사이트 크롤링 (Early Stop + Batch Commit 지원)
 
     Note: 이 함수는 한 번에 하나의 사이트만 처리하는 헬퍼 함수입니다.
           다중 사이트 크롤링은 run_crawler()에서 이 함수를 반복 호출하여 구현됩니다.
@@ -41,6 +41,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
     Returns:
         dict: 크롤링 결과 통계
     """
+    import time as time_module
     from config import Config
 
     logger.info(f"=== Crawling {site_key} ===")
@@ -55,6 +56,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
         list_url=site_config["list_url"],
         selectors=site_config["selectors"],
         user_agent=user_agent,
+        use_playwright=site_config.get("use_playwright", False),  # Playwright 사용 여부
     )
 
     stats = {
@@ -63,10 +65,24 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
         "images_saved": 0,
         "failed": 0,  # 파싱 실패 게시글 수
         "early_stopped": False,
+        "commits": 0,  # 커밋 횟수 추적
     }
 
     consecutive_duplicates = 0
     early_stop_config = Config.CRAWL_CONFIG["early_stop"]
+    batch_config = Config.CRAWL_CONFIG["batch_commit"]
+    
+    # 배치 커밋 설정
+    batch_enabled = batch_config.get("enabled", False)
+    chunk_size = batch_config.get("chunk_size", 20)
+    max_time_seconds = batch_config.get("max_time_seconds", 5)
+    
+    if batch_enabled:
+        logger.info(f"📦 Batch mode: commit every {chunk_size} posts or {max_time_seconds}s")
+    
+    # 배치 처리 상태
+    posts_since_commit = 0
+    last_commit_time = time_module.time()
 
     # 페이지별 크롤링
     for page_num in range(1, Config.CRAWL_CONFIG["max_pages"] + 1):
@@ -121,17 +137,40 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
                         f"Early Stop: {consecutive_duplicates} consecutive duplicates found"
                     )
                     stats["early_stopped"] = True
+                    
+                    # 마지막 커밋 (배치 모드)
+                    if batch_enabled and posts_since_commit > 0:
+                        db.flush()
+                        stats["commits"] += 1
+                        logger.info(f"   💾 Final commit: {posts_since_commit} posts")
+                    
                     return stats
             else:
                 # 새 게시글
                 stats["new_posts"] += 1
                 consecutive_duplicates = 0  # 리셋
+                posts_since_commit += 1
                 
                 image_count = len(post_data["images"])
                 logger.info(f"   ✅ New: {post_data['title'][:40]}... ({image_count} images)")
                 
                 # 이미지는 save_post_with_html에서 자동으로 저장됨
                 stats["images_saved"] += image_count
+                
+                # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                # 배치 커밋 로직
+                # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                if batch_enabled:
+                    current_time = time_module.time()
+                    time_elapsed = current_time - last_commit_time
+                    
+                    # 1. 청크 크기 도달 또는 2. 시간 초과
+                    if posts_since_commit >= chunk_size or time_elapsed >= max_time_seconds:
+                        db.flush()
+                        stats["commits"] += 1
+                        logger.info(f"   💾 Batch commit: {posts_since_commit} posts ({time_elapsed:.1f}s)")
+                        posts_since_commit = 0
+                        last_commit_time = current_time
 
             # 요청 간 딜레이
             time.sleep(Config.CRAWL_CONFIG["delay_between_requests"])
@@ -150,7 +189,20 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
             ):
                 logger.info(f"🛑 Early Stop: Page {page_num} has {duplicate_ratio:.0%} duplicates")
                 stats["early_stopped"] = True
+                
+                # 마지막 커밋 (배치 모드)
+                if batch_enabled and posts_since_commit > 0:
+                    db.flush()
+                    stats["commits"] += 1
+                    logger.info(f"   💾 Final commit: {posts_since_commit} posts")
+                
                 return stats
+    
+    # 마지막 커밋 (배치 모드에서 남은 데이터 커밋)
+    if batch_enabled and posts_since_commit > 0:
+        db.flush()
+        stats["commits"] += 1
+        logger.info(f"   💾 Final commit: {posts_since_commit} posts")
 
     return stats
 
@@ -169,10 +221,14 @@ def run_crawler():
         from scraper import Scraper
         from storage import DatabaseManager
 
-        # Storage 초기화 (R2 설정 포함)
+        # 배치 커밋 설정 확인
+        batch_enabled = Config.CRAWL_CONFIG["batch_commit"].get("enabled", False)
+        
+        # Storage 초기화 (R2 설정 + 배치 모드)
         db = DatabaseManager(
             db_path=Config.DATABASE["path"],
             r2_config=Config.R2_CONFIG,
+            auto_commit=not batch_enabled,  # 배치 모드면 수동 커밋
         )
 
         total_stats = {

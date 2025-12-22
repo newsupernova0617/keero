@@ -183,14 +183,16 @@ def clean_html(html: str) -> str:
 class DatabaseManager:
     """SQLAlchemy를 이용한 데이터베이스 관리"""
 
-    def __init__(self, db_path: str, r2_config: Optional[Dict] = None):
+    def __init__(self, db_path: str, r2_config: Optional[Dict] = None, auto_commit: bool = True):
         """
         DB 엔진 및 세션 초기화
         
         Args:
             db_path: SQLite 데이터베이스 경로
             r2_config: R2 설정 딕셔너리 (account_id, access_key_id, secret_access_key, bucket_name)
+            auto_commit: 자동 커밋 여부 (False면 flush() 호출 시에만 커밋)
         """
+        self.auto_commit = auto_commit
         engine = create_engine(f"sqlite:///{db_path}")
 
         # SQLite 최적화 설정
@@ -269,6 +271,15 @@ class DatabaseManager:
                 public_url=r2_config.get("public_url", ""),
             )
 
+    def flush(self):
+        """
+        수동 커밋 (배치 모드에서 사용)
+        
+        batch_commit 모드에서는 자동 커밋하지 않고,
+        이 메서드를 호출해야 DB에 반영됩니다.
+        """
+        self.session.commit()
+
     def save_post(self, post_data: Dict, image_urls: List[str]) -> Optional[int]:
         """
         게시글 저장 (중복 체크 + 관련글 연결)
@@ -303,7 +314,8 @@ class DatabaseManager:
             related_post_id=related_post.id if related_post else None,
         )
         self.session.add(post)
-        self.session.commit()
+        if self.auto_commit:
+            self.session.commit()
         return post.id
 
     def save_post_with_html(self, post_data: Dict, image_urls: List[str]) -> Optional[int]:
@@ -346,7 +358,11 @@ class DatabaseManager:
             related_post_id=related_post.id if related_post else None,
         )
         self.session.add(post)
-        self.session.commit()
+        if self.auto_commit:
+            self.session.commit()
+        else:
+            # 배치 모드: flush를 통해 post.id를 즉시 얻기 (커밋은 아님)
+            self.session.flush()
         post_id = post.id
 
         # 이미지 업로드 및 URL 매핑 생성
@@ -368,7 +384,8 @@ class DatabaseManager:
             )
             # DB 업데이트
             post.content_html = updated_html
-            self.session.commit()
+            if self.auto_commit:
+                self.session.commit()
 
         return post_id
 
@@ -401,7 +418,8 @@ class DatabaseManager:
                 is_similar_match=False,
             )
             self.session.add(image)
-            self.session.commit()
+            if self.auto_commit:
+                self.session.commit()
             return image
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -429,7 +447,8 @@ class DatabaseManager:
                     is_similar_match=True,
                 )
                 self.session.add(image)
-                self.session.commit()
+                if self.auto_commit:
+                    self.session.commit()
                 return image
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -448,7 +467,8 @@ class DatabaseManager:
             is_similar_match=False,
         )
         self.session.add(image)
-        self.session.commit()
+        if self.auto_commit:
+            self.session.commit()
         return image
 
     def download_image(self, url: str) -> bytes:
