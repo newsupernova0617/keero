@@ -294,6 +294,157 @@ export const actions: Actions = {
         }
 
         return { success: true }
+    },
+
+    // 댓글 좋아요 토글
+    toggleCommentLike: async ({ request, locals }) => {
+        const { session, user } = await locals.safeGetSession()
+
+        if (!session || !user) {
+            return fail(401, { error: '로그인이 필요합니다.' })
+        }
+
+        const formData = await request.formData()
+        const commentId = formData.get('comment_id')?.toString()
+
+        if (!commentId) {
+            return fail(400, { error: '잘못된 요청입니다.' })
+        }
+
+        // 사용자 DB에서 조회
+        let dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
+
+        if (!dbUser || dbUser.length === 0) {
+            const newUser = await db
+                .insert(users)
+                .values({
+                    supabase_id: user.id,
+                    email: user.email || '',
+                    display_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous',
+                    avatar_url: user.user_metadata?.avatar_url
+                })
+                .returning()
+            dbUser = newUser
+        }
+
+        const { likes } = await import('$lib/server/schema')
+
+        // 이미 좋아요 했는지 확인
+        const existingLike = await db
+            .select()
+            .from(likes)
+            .where(sql`${likes.comment_id} = ${parseInt(commentId)} AND ${likes.user_id} = ${dbUser[0].id}`)
+            .limit(1)
+
+        if (existingLike.length > 0) {
+            await db
+                .delete(likes)
+                .where(sql`${likes.comment_id} = ${parseInt(commentId)} AND ${likes.user_id} = ${dbUser[0].id}`)
+        } else {
+            await db.insert(likes).values({
+                comment_id: parseInt(commentId),
+                user_id: dbUser[0].id
+            })
+        }
+
+        return { success: true }
+    },
+
+    // 북마크 토글
+    toggleBookmark: async ({ params, locals }) => {
+        const { session, user } = await locals.safeGetSession()
+
+        if (!session || !user) {
+            return fail(401, { error: '로그인이 필요합니다.' })
+        }
+
+        const postId = parseInt(params.id)
+
+        let dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
+
+        if (!dbUser || dbUser.length === 0) {
+            const newUser = await db
+                .insert(users)
+                .values({
+                    supabase_id: user.id,
+                    email: user.email || '',
+                    display_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous',
+                    avatar_url: user.user_metadata?.avatar_url
+                })
+                .returning()
+            dbUser = newUser
+        }
+
+        const { bookmarks } = await import('$lib/server/schema')
+
+        const existingBookmark = await db
+            .select()
+            .from(bookmarks)
+            .where(sql`${bookmarks.post_id} = ${postId} AND ${bookmarks.user_id} = ${dbUser[0].id}`)
+            .limit(1)
+
+        if (existingBookmark.length > 0) {
+            await db
+                .delete(bookmarks)
+                .where(sql`${bookmarks.post_id} = ${postId} AND ${bookmarks.user_id} = ${dbUser[0].id}`)
+        } else {
+            await db.insert(bookmarks).values({
+                post_id: postId,
+                user_id: dbUser[0].id
+            })
+        }
+
+        return { success: true }
+    },
+
+    // 신고
+    report: async ({ request, locals }) => {
+        const { session, user } = await locals.safeGetSession()
+
+        if (!session || !user) {
+            return fail(401, { error: '로그인이 필요합니다.' })
+        }
+
+        const formData = await request.formData()
+        const postId = formData.get('post_id')?.toString()
+        const commentId = formData.get('comment_id')?.toString()
+        const reason = formData.get('reason')?.toString()
+        const description = formData.get('description')?.toString()
+
+        if (!reason) {
+            return fail(400, { error: '신고 사유를 선택해주세요.' })
+        }
+
+        if (!postId && !commentId) {
+            return fail(400, { error: '잘못된 요청입니다.' })
+        }
+
+        let dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
+
+        if (!dbUser || dbUser.length === 0) {
+            const newUser = await db
+                .insert(users)
+                .values({
+                    supabase_id: user.id,
+                    email: user.email || '',
+                    display_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous',
+                    avatar_url: user.user_metadata?.avatar_url
+                })
+                .returning()
+            dbUser = newUser
+        }
+
+        const { reports } = await import('$lib/server/schema')
+
+        await db.insert(reports).values({
+            user_id: dbUser[0].id,
+            post_id: postId ? parseInt(postId) : null,
+            comment_id: commentId ? parseInt(commentId) : null,
+            reason,
+            description: description || null
+        })
+
+        return { success: true, message: '신고가 접수되었습니다.' }
     }
 }
 
