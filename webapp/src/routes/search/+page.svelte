@@ -1,8 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types'
+	import * as Card from '$lib/components/ui/card'
+	import { Badge } from '$lib/components/ui/badge'
+	import { Button } from '$lib/components/ui/button'
+	import { Input } from '$lib/components/ui/input'
+	import EmptyState from '$lib/components/EmptyState.svelte'
+	import { Search, Image } from 'lucide-svelte'
 
 	let { data }: { data: PageData } = $props()
-	let searchQuery = $derived(data.query || '')
+	let searchQuery = $state(data.query || '')
 </script>
 
 <svelte:head>
@@ -19,80 +25,107 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<!-- 검색 폼 -->
-	<div class="rounded-lg border border-gray-200 bg-white p-6">
-		<form method="GET" class="flex gap-2">
-			<input
-				type="text"
-				name="q"
-				bind:value={searchQuery}
-				placeholder="검색어를 입력하세요..."
-				class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-			/>
-			<button
-				type="submit"
-				class="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition hover:bg-blue-700"
-			>
-				검색
-			</button>
-		</form>
+	<!-- 검색 헤더 -->
+	<div>
+		<h1 class="text-3xl font-bold tracking-tight">검색</h1>
+		<p class="mt-1 text-sm text-muted-foreground">
+			원하는 유머를 찾아보세요
+		</p>
 	</div>
+
+	<!-- 검색 폼 -->
+	<Card.Root>
+		<Card.Content class="p-6">
+			<form method="GET" class="flex gap-2">
+				<div class="relative flex-1">
+					<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Input
+						type="text"
+						name="q"
+						bind:value={searchQuery}
+						placeholder="검색어를 입력하세요..."
+						class="pl-10"
+					/>
+				</div>
+				<Button type="submit" class="gap-2">
+					<Search class="h-4 w-4" />
+					검색
+				</Button>
+			</form>
+		</Card.Content>
+	</Card.Root>
 
 	<!-- 검색 결과 -->
 	{#if data.query}
-		<div>
-			<h1 class="mb-4 text-2xl font-bold text-gray-900">
-				"{data.query}" 검색 결과 ({data.results.length}개)
-			</h1>
+		<div class="space-y-4">
+			<!-- 결과 헤더 -->
+			<div class="flex items-center justify-between">
+				<h2 class="text-xl font-semibold">
+					"{data.query}" 검색 결과
+				</h2>
+				<Badge variant="secondary">
+					{data.results.length}개
+				</Badge>
+			</div>
 
 			{#if data.results.length === 0}
-				<div class="rounded-lg border border-gray-200 bg-white p-8 text-center">
-					<p class="text-gray-500">검색 결과가 없습니다.</p>
-				</div>
+				<EmptyState 
+					title="검색 결과가 없습니다"
+					description="다른 검색어로 다시 시도해보세요."
+					actionLabel="홈으로"
+					actionHref="/"
+				/>
 			{:else}
 				<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 					{#each data.results as post}
 						<a
 							href="/post/{post.id}"
-							class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+							class="group block transition-transform hover:scale-[1.02]"
 						>
-							{#if post.thumbnail}
-								<div class="aspect-video overflow-hidden bg-gray-100">
-									<img
-										src={post.thumbnail}
-										alt={post.title}
-										class="h-full w-full object-cover transition group-hover:scale-105"
-									/>
-								</div>
-							{/if}
+							<Card.Root class="h-full overflow-hidden border-2 transition-all hover:border-primary/50 hover:shadow-xl">
+								{#if post.thumbnail}
+									<div class="relative aspect-video overflow-hidden bg-muted">
+										<img
+											src={post.thumbnail}
+											alt={post.title}
+											class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+											loading="lazy"
+										/>
+										{#if post.image_count > 1}
+											<div class="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-xs text-white backdrop-blur-sm">
+												<Image class="h-3 w-3" />
+												{post.image_count}
+											</div>
+										{/if}
+									</div>
+								{/if}
 
-							<div class="p-4">
-								<h2
-									class="mb-2 line-clamp-2 text-lg font-semibold text-gray-900 group-hover:text-blue-600"
-								>
-									{post.title}
-								</h2>
+								<Card.Content class="p-4">
+									<Card.Title class="mb-2 line-clamp-2 text-lg transition-colors group-hover:text-primary">
+										{post.title}
+									</Card.Title>
 
-								<div class="flex items-center gap-2 text-sm text-gray-500">
-									<span class="rounded bg-gray-100 px-2 py-1 text-xs font-medium">
-										{post.site_name}
-									</span>
-									{#if post.created_at}
-										<span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
-									{/if}
-									{#if post.image_count > 0}
-										<span>🖼️ {post.image_count}</span>
-									{/if}
-								</div>
-							</div>
+									<div class="flex flex-wrap items-center gap-2 text-sm">
+										<Badge variant="secondary" class="font-medium">
+											{post.site_name}
+										</Badge>
+										{#if post.created_at}
+											<span class="text-xs text-muted-foreground">
+												{new Date(post.created_at).toLocaleDateString('ko-KR')}
+											</span>
+										{/if}
+									</div>
+								</Card.Content>
+							</Card.Root>
 						</a>
 					{/each}
 				</div>
 			{/if}
 		</div>
 	{:else}
-		<div class="rounded-lg border border-gray-200 bg-white p-8 text-center">
-			<p class="text-gray-500">검색어를 입력해주세요.</p>
-		</div>
+		<EmptyState 
+			title="검색어를 입력해주세요"
+			description="위 검색창에 찾고 싶은 내용을 입력하세요."
+		/>
 	{/if}
 </div>

@@ -2,9 +2,16 @@
 	import type { PageData } from './$types'
 	import { enhance } from '$app/forms'
 	import DOMPurify from 'isomorphic-dompurify'
+	import * as Card from '$lib/components/ui/card'
+	import { Badge } from '$lib/components/ui/badge'
+	import { Button } from '$lib/components/ui/button'
+	import { Separator } from '$lib/components/ui/separator'
+	import * as Avatar from '$lib/components/ui/avatar'
+	import { Textarea } from '$lib/components/ui/textarea'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
+	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare, User } from 'lucide-svelte'
 
 	let { data }: { data: PageData } = $props()
 	let { post, images, comments, session } = $derived(data)
@@ -19,27 +26,17 @@
 			: ''
 	)
 
-	// 이미지 lazy loading 상태
-	let loadedImages = $state<Set<number>>(new Set())
 	let commentContent = $state('')
-	let replyingTo = $state<number | null>(null)
-
-	function handleImageLoad(index: number) {
-		// Svelte 5에서 Set을 반응형으로 업데이트하려면 새 인스턴스를 생성해야 함
-		loadedImages = new Set(loadedImages).add(index)
-	}
 
 	// 댓글 트리 구조 생성
 	function buildCommentTree(comments: any[]) {
 		const commentMap = new Map()
 		const rootComments: any[] = []
 
-		// 먼저 모든 댓글을 맵에 저장
 		comments.forEach((comment) => {
 			commentMap.set(comment.id, { ...comment, replies: [] })
 		})
 
-		// 부모-자식 관계 설정
 		comments.forEach((comment) => {
 			const commentNode = commentMap.get(comment.id)
 			if (comment.parent_comment_id) {
@@ -86,53 +83,62 @@
 	<link rel="canonical" href="https://yourdomain.com/post/{post.id}" />
 </svelte:head>
 
-<div class="mx-auto max-w-4xl">
+<div class="mx-auto max-w-4xl space-y-6">
 	<!-- 뒤로 가기 -->
-	<a href="/" class="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
-		← 목록으로
-	</a>
+	<Button href="/" variant="ghost" size="sm" class="gap-2">
+		<ArrowLeft class="h-4 w-4" />
+		목록으로
+	</Button>
 
-	<!-- 게시글 헤더 -->
-	<article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-		<div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-			<h1 class="text-2xl font-bold text-gray-900">{post.title}</h1>
+	<!-- 게시글 카드 -->
+	<Card.Root class="overflow-hidden">
+		<!-- 헤더 -->
+		<Card.Header class="space-y-3 bg-muted/50">
+			<div class="flex items-start justify-between gap-4">
+				<div class="flex-1 space-y-2">
+					<Badge variant="secondary" class="w-fit">
+						{post.site_name}
+					</Badge>
+					<Card.Title class="text-2xl leading-tight">
+						{post.title}
+					</Card.Title>
+				</div>
+			</div>
 
-			<div class="mt-2 flex items-center gap-3 text-sm text-gray-600">
-				<span class="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-					{post.site_name}
-				</span>
+			<div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
 				{#if post.created_at}
 					<span>{new Date(post.created_at).toLocaleString('ko-KR')}</span>
 				{/if}
-				<button
+				<Separator orientation="vertical" class="h-4" />
+				<Button
+					variant="ghost"
+					size="sm"
+					class="h-auto gap-2 p-0 hover:bg-transparent"
 					onclick={() => window.open(post.source_url, '_blank', 'noopener,noreferrer')}
-					class="text-blue-600 hover:underline"
 				>
-					원문 보기 →
-				</button>
+					<ExternalLink class="h-4 w-4" />
+					원문 보기
+				</Button>
 			</div>
-		</div>
+		</Card.Header>
 
-		<!-- 게시글 본문 -->
-		<div class="p-6">
+		<!-- 본문 -->
+		<Card.Content class="p-6">
 			{#if post.content_html}
-				<!-- HTML 렌더링 -->
-				<div class="prose prose-gray max-w-none">
+				<div class="prose prose-gray max-w-none dark:prose-invert">
 					{@html sanitizedHtml}
 				</div>
 			{:else}
-				<!-- Fallback: 텍스트 + 이미지 갤러리 (기존 방식) -->
 				{#if post.content}
-					<div class="prose prose-gray max-w-none">
-						<p class="whitespace-pre-wrap text-gray-700">{post.content}</p>
+					<div class="prose prose-gray max-w-none dark:prose-invert">
+						<p class="whitespace-pre-wrap">{post.content}</p>
 					</div>
 				{/if}
 
-				<!-- 이미지 갤러리 (content_html이 없을 때만) -->
 				{#if images.length > 0}
 					<div class="mt-6 space-y-4">
 						{#each images as image, index}
-							<div class="overflow-hidden rounded-lg border border-gray-200">
+							<div class="overflow-hidden rounded-lg border">
 								<img
 									src={image.r2_url}
 									alt="게시글 이미지 {index + 1}"
@@ -140,7 +146,7 @@
 									loading="lazy"
 								/>
 								{#if image.media_type === 'gif'}
-									<div class="bg-gray-50 px-3 py-1 text-xs text-gray-600">
+									<div class="bg-muted px-3 py-2 text-xs text-muted-foreground">
 										GIF {image.duration_seconds ? `(${image.duration_seconds}초)` : ''}
 									</div>
 								{/if}
@@ -149,127 +155,131 @@
 					</div>
 				{/if}
 			{/if}
-		</div>
+		</Card.Content>
 
-		<!-- 게시글 푸터 -->
-		<div class="border-t border-gray-200 bg-gray-50 px-6 py-4">
-			<div class="flex items-center justify-between">
-				<div class="text-sm text-gray-500">
-					크롤링: {new Date(post.crawled_at).toLocaleString('ko-KR')}
-				</div>
-
-				<button
-					class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-				>
-					👍 좋아요
-				</button>
+		<!-- 푸터 액션 -->
+		<Card.Footer class="flex items-center justify-between border-t bg-muted/50 p-4">
+			<div class="text-xs text-muted-foreground">
+				크롤링: {new Date(post.crawled_at).toLocaleString('ko-KR')}
 			</div>
-		</div>
-	</article>
+
+			<div class="flex gap-2">
+				<Button variant="outline" size="sm" class="gap-2">
+					<ThumbsUp class="h-4 w-4" />
+					좋아요
+				</Button>
+				<Button variant="outline" size="sm" class="gap-2">
+					<Share2 class="h-4 w-4" />
+					공유
+				</Button>
+			</div>
+		</Card.Footer>
+	</Card.Root>
 
 	<!-- 댓글 위 광고 -->
 	{#if AD_CONFIG.adsense.enabled}
-		<div class="mt-8">
-			<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="rectangle" />
-		</div>
+		<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="rectangle" />
 	{:else if AD_CONFIG.adpost.enabled}
-		<div class="mt-8 flex justify-center">
+		<div class="flex justify-center">
 			<AdPost unitId={AD_CONFIG.adpost.units.inArticle} width={336} height={280} />
 		</div>
 	{/if}
 
 	<!-- 댓글 섹션 -->
-	<div class="mt-8 rounded-lg border border-gray-200 bg-white p-6">
-		<h2 class="mb-4 text-xl font-bold text-gray-900">
-			댓글 <span class="text-gray-500">({comments?.length || 0})</span>
-		</h2>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title class="flex items-center gap-2">
+				<MessageSquare class="h-5 w-5" />
+				댓글
+				<Badge variant="secondary">{comments?.length || 0}</Badge>
+			</Card.Title>
+		</Card.Header>
 
-		<!-- 댓글 작성 폼 -->
-		{#if session}
-			<form method="POST" action="?/comment" use:enhance class="mb-6">
-				<textarea
-					name="content"
-					bind:value={commentContent}
-					placeholder="댓글을 입력하세요..."
-					class="w-full rounded-lg border border-gray-300 p-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-					rows="3"
-				></textarea>
-				<div class="mt-2 flex justify-end">
-					<button
-						type="submit"
-						class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-					>
-						댓글 작성
-					</button>
-				</div>
-			</form>
-		{:else}
-			<div class="mb-6 rounded-lg bg-gray-50 p-4 text-center">
-				<p class="text-gray-600">
-					댓글을 작성하려면 <a href="/auth/login" class="text-blue-600 hover:underline"
-						>로그인</a
-					>이 필요합니다.
-				</p>
-			</div>
-		{/if}
-
-		<!-- 댓글 목록 -->
-		{#if commentTree.length > 0}
-			<div class="space-y-4">
-				{#each commentTree as comment}
-					<div class="border-b border-gray-100 pb-4 last:border-0">
-						<div class="flex gap-3">
-							<div class="flex-shrink-0">
-								<div
-									class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-medium text-blue-600"
-								>
-									{comment.user_display_name?.[0] || '?'}
-								</div>
-							</div>
-							<div class="flex-1">
-								<div class="flex items-center gap-2">
-									<span class="font-medium text-gray-900">{comment.user_display_name}</span>
-									<span class="text-xs text-gray-500">
-										{new Date(comment.created_at).toLocaleString('ko-KR')}
-									</span>
-								</div>
-								<p class="mt-1 text-gray-700">{comment.content}</p>
-
-								<!-- 대댓글 -->
-								{#if comment.replies && comment.replies.length > 0}
-									<div class="ml-8 mt-3 space-y-3">
-										{#each comment.replies as reply}
-											<div class="flex gap-3">
-												<div class="flex-shrink-0">
-													<div
-														class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600"
-													>
-														{reply.user_display_name?.[0] || '?'}
-													</div>
-												</div>
-												<div class="flex-1">
-													<div class="flex items-center gap-2">
-														<span class="text-sm font-medium text-gray-900"
-															>{reply.user_display_name}</span
-														>
-														<span class="text-xs text-gray-500">
-															{new Date(reply.created_at).toLocaleString('ko-KR')}
-														</span>
-													</div>
-													<p class="mt-1 text-sm text-gray-700">{reply.content}</p>
-												</div>
-											</div>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						</div>
+		<Card.Content class="space-y-6">
+			<!-- 댓글 작성 폼 -->
+			{#if session}
+				<form method="POST" action="?/comment" use:enhance class="space-y-3">
+					<Textarea
+						name="content"
+						bind:value={commentContent}
+						placeholder="댓글을 입력하세요..."
+						rows={3}
+					/>
+					<div class="flex justify-end">
+						<Button type="submit" size="sm">
+							댓글 작성
+						</Button>
 					</div>
-				{/each}
-			</div>
-		{:else}
-			<p class="text-center text-gray-500">첫 댓글을 작성해보세요!</p>
-		{/if}
-	</div>
-</div>
+				</form>
+			{:else}
+				<Card.Root class="bg-muted/50">
+					<Card.Content class="p-4 text-center">
+						<p class="text-sm text-muted-foreground">
+							댓글을 작성하려면 
+							<Button href="/auth/login" variant="link" class="h-auto p-0">
+								로그인
+							</Button>
+							이 필요합니다.
+						</p>
+					</Card.Content>
+				</Card.Root>
+			{/if}
 
+			<Separator />
+
+			<!-- 댓글 목록 -->
+			{#if commentTree.length > 0}
+				<div class="space-y-4">
+					{#each commentTree as comment}
+						<div class="space-y-3">
+							<div class="flex gap-3">
+								<Avatar.Root class="h-10 w-10">
+									<Avatar.Fallback class="bg-primary/10 text-primary">
+										{comment.user_display_name?.[0] || '?'}
+									</Avatar.Fallback>
+								</Avatar.Root>
+								
+								<div class="flex-1 space-y-1">
+									<div class="flex items-center gap-2">
+										<span class="font-medium">{comment.user_display_name}</span>
+										<span class="text-xs text-muted-foreground">
+											{new Date(comment.created_at).toLocaleString('ko-KR')}
+										</span>
+									</div>
+									<p class="text-sm">{comment.content}</p>
+								</div>
+							</div>
+
+							<!-- 대댓글 -->
+							{#if comment.replies && comment.replies.length > 0}
+								<div class="ml-12 space-y-3 border-l-2 pl-4">
+									{#each comment.replies as reply}
+										<div class="flex gap-3">
+											<Avatar.Root class="h-8 w-8">
+												<Avatar.Fallback class="bg-muted text-xs">
+													{reply.user_display_name?.[0] || '?'}
+												</Avatar.Fallback>
+											</Avatar.Root>
+											
+											<div class="flex-1 space-y-1">
+												<div class="flex items-center gap-2">
+													<span class="text-sm font-medium">{reply.user_display_name}</span>
+													<span class="text-xs text-muted-foreground">
+														{new Date(reply.created_at).toLocaleString('ko-KR')}
+													</span>
+												</div>
+												<p class="text-sm">{reply.content}</p>
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<p class="text-center text-sm text-muted-foreground">첫 댓글을 작성해보세요!</p>
+			{/if}
+		</Card.Content>
+	</Card.Root>
+</div>

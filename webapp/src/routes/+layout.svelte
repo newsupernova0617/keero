@@ -6,9 +6,14 @@
 	import type { LayoutData } from './$types'
 	import { Button } from '$lib/components/ui/button'
 	import { Input } from '$lib/components/ui/input'
+	import { Search } from 'lucide-svelte'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
+	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte'
+	import Footer from '$lib/components/Footer.svelte'
+	import MobileNav from '$lib/components/MobileNav.svelte'
+	import UserMenu from '$lib/components/UserMenu.svelte'
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
@@ -27,33 +32,38 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="min-h-screen bg-background">
+<div class="flex min-h-screen flex-col bg-background">
 	<!-- Header -->
-	<header class="border-b bg-card">
+	<header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 		<div class="mx-auto max-w-7xl px-4 py-4">
 			<div class="flex items-center justify-between gap-4">
-				<a href="/" class="text-2xl font-bold">유머 게시판</a>
+				<!-- Logo + Mobile Menu -->
+				<div class="flex items-center gap-3">
+					<MobileNav {session} {user} />
+					<a href="/" class="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+						유머 게시판
+					</a>
+				</div>
 
-				<!-- 검색바 -->
+				<!-- Desktop Search -->
 				<form method="GET" action="/search" class="hidden flex-1 max-w-md md:flex">
-					<Input
-						type="text"
-						name="q"
-						placeholder="검색..."
-						class="w-full"
-					/>
+					<div class="relative w-full">
+						<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							type="text"
+							name="q"
+							placeholder="검색..."
+							class="w-full pl-10"
+						/>
+					</div>
 				</form>
 
-				<nav class="flex items-center gap-4">
+				<!-- Desktop Navigation -->
+				<nav class="hidden items-center gap-2 md:flex">
+					<DarkModeToggle />
+					
 					{#if session}
-						<span class="text-sm text-muted-foreground">
-							{user?.email}
-						</span>
-						<form method="POST" action="/auth/signout">
-							<Button type="submit" variant="outline" size="sm">
-								로그아웃
-							</Button>
-						</form>
+						<UserMenu {user} />
 					{:else}
 						<Button href="/auth/login" size="sm">
 							로그인
@@ -61,10 +71,23 @@
 					{/if}
 				</nav>
 			</div>
+
+			<!-- Mobile Search -->
+			<form method="GET" action="/search" class="mt-4 md:hidden">
+				<div class="relative w-full">
+					<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Input
+						type="text"
+						name="q"
+						placeholder="검색..."
+						class="w-full pl-10"
+					/>
+				</div>
+			</form>
 		</div>
 	</header>
 
-	<!-- 헤더 하단 배너 광고 -->
+	<!-- Header Banner Ad -->
 	{#if AD_CONFIG.adsense.enabled}
 		<AdSense slot={AD_CONFIG.adsense.slots.header} format="horizontal" className="mx-auto max-w-7xl" />
 	{:else if AD_CONFIG.adpost.enabled}
@@ -74,11 +97,11 @@
 	{/if}
 
 	<!-- Main Content -->
-	<main class="mx-auto max-w-7xl px-4 py-8">
+	<main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
 		{@render children()}
 	</main>
 
-	<!-- 푸터 상단 배너 광고 -->
+	<!-- Footer Banner Ad -->
 	{#if AD_CONFIG.adsense.enabled}
 		<AdSense slot={AD_CONFIG.adsense.slots.footer} format="horizontal" className="mx-auto max-w-7xl" />
 	{:else if AD_CONFIG.adpost.enabled}
@@ -86,5 +109,7 @@
 			<AdPost unitId={AD_CONFIG.adpost.units.footer} width={728} height={90} />
 		</div>
 	{/if}
-</div>
 
+	<!-- Footer -->
+	<Footer />
+</div>

@@ -5,8 +5,26 @@
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import { AD_CONFIG, AD_RULES } from '$lib/config/ads'
+	import SiteFilter from '$lib/components/SiteFilter.svelte'
+	import PostCardSkeleton from '$lib/components/PostCardSkeleton.svelte'
+	import EmptyState from '$lib/components/EmptyState.svelte'
+	import { Image } from 'lucide-svelte'
 
 	let { data }: { data: PageData } = $props()
+	
+	let selectedSite = $state('all')
+	let isLoading = $state(false)
+	
+	// 필터링된 게시글
+	let filteredPosts = $derived(
+		selectedSite === 'all' 
+			? data.posts 
+			: data.posts.filter(post => post.site_name === selectedSite)
+	)
+	
+	function handleFilterChange(site: string) {
+		selectedSite = site
+	}
 </script>
 
 <svelte:head>
@@ -41,44 +59,73 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<h1 class="text-3xl font-bold">최신 게시글</h1>
+	<!-- Header -->
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			<h1 class="text-3xl font-bold tracking-tight">최신 게시글</h1>
+			<p class="mt-1 text-sm text-muted-foreground">
+				여러 커뮤니티의 재미있는 유머를 한눈에
+			</p>
+		</div>
+		<Badge variant="secondary" class="w-fit">
+			{filteredPosts.length}개의 게시글
+		</Badge>
+	</div>
 
-	{#if data.posts.length === 0}
-		<Card.Root>
-			<Card.Content class="p-8 text-center">
-				<p class="text-muted-foreground">아직 크롤링된 게시글이 없습니다.</p>
-			</Card.Content>
-		</Card.Root>
+	<!-- Site Filter -->
+	<SiteFilter onFilterChange={handleFilterChange} />
+
+	<!-- Posts Grid -->
+	{#if isLoading}
+		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+			{#each Array(6) as _}
+				<PostCardSkeleton />
+			{/each}
+		</div>
+	{:else if filteredPosts.length === 0}
+		<EmptyState 
+			title="게시글이 없습니다"
+			description={selectedSite === 'all' 
+				? '아직 크롤링된 게시글이 없습니다.' 
+				: `${selectedSite}에서 크롤링된 게시글이 없습니다.`}
+		/>
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each data.posts as post, index}
+			{#each filteredPosts as post, index}
 				<!-- 게시글 카드 -->
-				<a href="/post/{post.id}" class="group">
-					<Card.Root class="overflow-hidden transition-shadow hover:shadow-lg">
+				<a 
+					href="/post/{post.id}" 
+					class="group block transition-transform hover:scale-[1.02]"
+				>
+					<Card.Root class="h-full overflow-hidden border-2 transition-all hover:border-primary/50 hover:shadow-xl">
 						{#if post.thumbnail}
-							<div class="aspect-video overflow-hidden bg-muted">
+							<div class="relative aspect-video overflow-hidden bg-muted">
 								<img
 									src={post.thumbnail}
 									alt={post.title}
-									class="h-full w-full object-cover transition-transform group-hover:scale-105"
+									class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+									loading="lazy"
 								/>
+								{#if post.image_count > 1}
+									<div class="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-xs text-white backdrop-blur-sm">
+										<Image class="h-3 w-3" />
+										{post.image_count}
+									</div>
+								{/if}
 							</div>
 						{/if}
 
 						<Card.Content class="p-4">
-							<Card.Title class="mb-2 line-clamp-2 text-lg group-hover:text-primary">
+							<Card.Title class="mb-2 line-clamp-2 text-lg transition-colors group-hover:text-primary">
 								{post.title}
 							</Card.Title>
 
 							<div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-								<Badge variant="secondary">
+								<Badge variant="secondary" class="font-medium">
 									{post.site_name}
 								</Badge>
 								{#if post.created_at}
-									<span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
-								{/if}
-								{#if post.image_count > 0}
-									<span>🖼️ {post.image_count}</span>
+									<span class="text-xs">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
 								{/if}
 							</div>
 						</Card.Content>
@@ -86,7 +133,7 @@
 				</a>
 
 				<!-- 피드 내 광고 (N개마다) -->
-				{#if (index + 1) % AD_RULES.feedInterval === 0 && index < data.posts.length - 1}
+				{#if (index + 1) % AD_RULES.feedInterval === 0 && index < filteredPosts.length - 1}
 					<div class="col-span-full">
 						{#if AD_CONFIG.adsense.enabled}
 							<AdSense slot={AD_CONFIG.adsense.slots.inFeed} format="auto" />
@@ -99,4 +146,3 @@
 		</div>
 	{/if}
 </div>
-
