@@ -2,6 +2,7 @@ import { requireAdmin } from '$lib/server/auth'
 import { db } from '$lib/server/db'
 import { posts, comments, users } from '$lib/server/schema'
 import { sql, desc } from 'drizzle-orm'
+import { error } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async (event) => {

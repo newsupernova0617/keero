@@ -36,7 +36,7 @@
 						</td>
 						<td class="px-6 py-4 text-sm text-gray-600">{post.site_name}</td>
 						<td class="px-6 py-4 text-sm text-gray-600">
-							{new Date(post.crawled_at).toLocaleDateString('ko-KR')}
+							{post.crawled_at ? new Date(post.crawled_at).toLocaleDateString('ko-KR') : 'N/A'}
 						</td>
 						<td class="px-6 py-4">
 							<form method="POST" action="?/delete" use:enhance>
