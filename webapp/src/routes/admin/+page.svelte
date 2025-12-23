@@ -3,7 +3,7 @@
 	import * as Card from '$lib/components/ui/card'
 	import { Badge } from '$lib/components/ui/badge'
 	import { Button } from '$lib/components/ui/button'
-	import { FileText, MessageSquare, Users, TrendingUp } from '@lucide/svelte'
+	import { FileText, MessageSquare, Users, TrendingUp, Database } from '@lucide/svelte'
 
 	let { data }: { data: PageData } = $props()
 	let { stats, recentPosts, recentComments } = $derived(data)
@@ -132,7 +132,7 @@
 			<Card.Description>자주 사용하는 관리 기능</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<div class="grid gap-4 md:grid-cols-4">
+			<div class="grid gap-4 md:grid-cols-5">
 				<Button href="/admin/posts" variant="outline" class="h-auto flex-col gap-2 py-4">
 					<FileText class="h-6 w-6" />
 					게시글 관리
@@ -144,6 +144,10 @@
 				<Button href="/admin/users" variant="outline" class="h-auto flex-col gap-2 py-4">
 					<Users class="h-6 w-6" />
 					사용자 관리
+				</Button>
+				<Button href="/admin/database" variant="outline" class="h-auto flex-col gap-2 py-4">
+					<Database class="h-6 w-6" />
+					DB 관리
 				</Button>
 				<Button href="/admin/stats" variant="outline" class="h-auto flex-col gap-2 py-4">
 					<TrendingUp class="h-6 w-6" />
