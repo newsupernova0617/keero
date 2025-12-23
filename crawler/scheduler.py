@@ -82,8 +82,7 @@ def main():
     logger.info("=" * 80)
     logger.info("📋 Scheduled Jobs:")
     for job in scheduler.get_jobs():
-        next_run = job.next_run_time.strftime('%H:%M:%S') if job.next_run_time else 'N/A'
-        logger.info(f"  - {job.name} (Next: {next_run})")
+        logger.info(f"  - {job.name}")
     
     logger.info("=" * 80)
     logger.info("✅ Scheduler is running... Press Ctrl+C to exit")
