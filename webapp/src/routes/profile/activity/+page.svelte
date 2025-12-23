@@ -72,7 +72,7 @@
 									{comment.content}
 								</p>
 								<p class="text-xs text-muted-foreground">
-									{new Date(comment.created_at).toLocaleString('ko-KR')}
+									{comment.created_at ? new Date(comment.created_at).toLocaleString('ko-KR') : 'N/A'}
 								</p>
 							</div>
 						{/each}
@@ -103,7 +103,7 @@
 									<Badge variant="secondary" class="text-xs">
 										{post.site_name}
 									</Badge>
-									<span>{new Date(post.liked_at).toLocaleDateString('ko-KR')}</span>
+									<span>{post.liked_at ? new Date(post.liked_at).toLocaleDateString('ko-KR') : 'N/A'}</span>
 								</div>
 							</div>
 						{/each}
@@ -134,7 +134,7 @@
 									<Badge variant="secondary" class="text-xs">
 										{post.site_name}
 									</Badge>
-									<span>{new Date(post.bookmarked_at).toLocaleDateString('ko-KR')}</span>
+									<span>{post.bookmarked_at ? new Date(post.bookmarked_at).toLocaleDateString('ko-KR') : 'N/A'}</span>
 								</div>
 							</div>
 						{/each}

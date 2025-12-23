@@ -18,7 +18,7 @@
 	} = $props()
 
 	let open = $state(false)
-	let reason = $state('spam')
+	let selectedReason = $state<string>('spam')
 	let description = $state('')
 
 	const reasons = [
@@ -60,17 +60,17 @@
 
 			<div class="space-y-2">
 				<Label>신고 사유</Label>
-				<Select.Root type="single">
+				<Select.Root type="single" bind:value={selectedReason}>
 					<Select.Trigger class="w-full">
-						<Select.Value placeholder="사유를 선택하세요" />
+						{reasons.find(r => r.value === selectedReason)?.label || '사유를 선택하세요'}
 					</Select.Trigger>
 					<Select.Content>
 						{#each reasons as r}
-							<Select.Item value={r.value}>{r.label}</Select.Item>
+							<Select.Item value={r.value} label={r.label}>{r.label}</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
-				<input type="hidden" name="reason" bind:value={reason} />
+				<input type="hidden" name="reason" value={selectedReason} />
 			</div>
 
 			<div class="space-y-2">

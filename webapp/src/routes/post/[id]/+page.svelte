@@ -183,9 +183,15 @@
 
 		<!-- 푸터 액션 -->
 		<Card.Footer class="flex items-center justify-between border-t bg-muted/50 p-4">
-			<div class="text-xs text-muted-foreground">
-				크롤링: {new Date(post.crawled_at).toLocaleString('ko-KR')}
-			</div>
+			{#if post.crawled_at}
+				<div class="text-xs text-muted-foreground">
+					크롤링: {new Date(post.crawled_at).toLocaleString('ko-KR')}
+				</div>
+			{:else}
+				<div class="text-xs text-muted-foreground">
+					크롤링 정보 없음
+				</div>
+			{/if}
 
 			<div class="flex gap-2">
 				<Button variant="outline" size="sm" class="gap-2">

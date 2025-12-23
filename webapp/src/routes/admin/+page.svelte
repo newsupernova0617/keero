@@ -104,7 +104,7 @@
 							<div class="flex items-center gap-2">
 								<span class="text-sm font-medium">{comment.user_display_name}</span>
 								<span class="text-xs text-muted-foreground">
-									{new Date(comment.created_at).toLocaleDateString('ko-KR')}
+									{comment.created_at ? new Date(comment.created_at).toLocaleDateString('ko-KR') : 'N/A'}
 								</span>
 							</div>
 							<a 
