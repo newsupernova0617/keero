@@ -1,15 +1,15 @@
 """
 Railway용 크롤러 스케줄러
 
-15분 간격으로 8개 사이트를 로테이션하며 크롤링합니다.
-- 각 사이트는 2시간마다 크롤링됨
-- 사용자는 15분마다 새 글을 볼 수 있음
+7분 30초 간격으로 8개 사이트를 순차적으로 크롤링합니다.
+- 각 사이트는 1시간마다 크롤링됨 (8 × 7.5분 = 60분)
+- 사용자는 7분 30초마다 새 글을 볼 수 있음
 """
 
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.cron import CronTrigger
-from datetime import datetime
+from apscheduler.triggers.interval import IntervalTrigger
+from datetime import datetime, timedelta
 
 # 로깅 설정
 logging.basicConfig(
@@ -36,26 +36,32 @@ def main():
     logger.info("🤖 Crawler Scheduler Starting...")
     logger.info("=" * 80)
     
-    scheduler = BlockingScheduler()
+    scheduler = BlockingScheduler(timezone='Asia/Seoul')
     
-    # 8개 사이트 스케줄 정의
-    # (사이트명, 시작 시간(분), 시작 시간(시))
-    sites_schedule = [
-        ("ruliweb", 0, "0,2,4,6,8,10,12,14,16,18,20,22"),      # 매 짝수 시간 00분
-        ("todayhumor", 15, "0,2,4,6,8,10,12,14,16,18,20,22"),  # 매 짝수 시간 15분
-        ("ppomppu", 30, "0,2,4,6,8,10,12,14,16,18,20,22"),     # 매 짝수 시간 30분
-        ("fmkorea", 45, "0,2,4,6,8,10,12,14,16,18,20,22"),     # 매 짝수 시간 45분
-        ("mlbpark", 0, "1,3,5,7,9,11,13,15,17,19,21,23"),      # 매 홀수 시간 00분
-        ("clien", 15, "1,3,5,7,9,11,13,15,17,19,21,23"),       # 매 홀수 시간 15분
-        ("humoruniv", 30, "1,3,5,7,9,11,13,15,17,19,21,23"),   # 매 홀수 시간 30분
-        ("dogdrip", 45, "1,3,5,7,9,11,13,15,17,19,21,23"),     # 매 홀수 시간 45분
+    # 8개 사이트 목록 (순서대로 크롤링)
+    sites = [
+        "ruliweb",
+        "todayhumor",
+        "ppomppu",
+        "fmkorea",
+        "mlbpark",
+        "clien",
+        "humoruniv",
+        "dogdrip"
     ]
     
-    # 스케줄 등록
-    for site_name, minute, hours in sites_schedule:
-        trigger = CronTrigger(
-            hour=hours,
-            minute=minute,
+    # 현재 시간
+    now = datetime.now()
+    
+    # 각 사이트를 7분 30초 간격으로 스케줄링
+    for index, site_name in enumerate(sites):
+        # 시작 시간: 현재 시간 + (인덱스 × 7분 30초)
+        start_time = now + timedelta(seconds=index * 450)  # 450초 = 7분 30초
+        
+        # 1시간(3600초) 간격으로 반복
+        trigger = IntervalTrigger(
+            seconds=3600,  # 1시간 = 3600초
+            start_date=start_time,
             timezone='Asia/Seoul'
         )
         
@@ -70,13 +76,14 @@ def main():
             misfire_grace_time=300  # 5분 이내 누락 허용
         )
         
-        logger.info(f"📅 Scheduled: {site_name} at minute={minute}, hours={hours}")
+        logger.info(f"📅 Scheduled: {site_name} - First run at {start_time.strftime('%H:%M:%S')}, then every 1 hour")
     
     # 등록된 작업 출력
     logger.info("=" * 80)
     logger.info("📋 Scheduled Jobs:")
     for job in scheduler.get_jobs():
-        logger.info(f"  - {job.name}")
+        next_run = job.next_run_time.strftime('%H:%M:%S') if job.next_run_time else 'N/A'
+        logger.info(f"  - {job.name} (Next: {next_run})")
     
     logger.info("=" * 80)
     logger.info("✅ Scheduler is running... Press Ctrl+C to exit")

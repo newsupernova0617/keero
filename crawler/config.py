@@ -185,7 +185,7 @@ class Config:
 
     # 크롤링 옵션
     CRAWL_CONFIG = {
-        "max_pages": 3,
+        "max_pages": 1,  # 1페이지만 크롤링 (베스트 게시판은 1페이지면 충분)
         "delay_between_requests": 3.0,
         "max_retries": 3,
         "timeout": 30,
