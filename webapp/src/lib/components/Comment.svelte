@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms'
+	import { goto } from '$app/navigation'
+	import { tick } from 'svelte'
 	import { Button } from '$lib/components/ui/button'
 	import { Textarea } from '$lib/components/ui/textarea'
 	import * as Avatar from '$lib/components/ui/avatar'
@@ -97,12 +99,33 @@
 	<div class="flex-1 space-y-2">
 		{#if isEditing}
 			<!-- 수정 폼 -->
-			<form method="POST" action="?/editComment" use:enhance class="space-y-2">
+			<form 
+				method="POST" 
+				action="?/editComment" 
+				use:enhance={() => {
+					return async ({ result }) => {
+						if (result.type === 'success') {
+							onCancelEdit()
+							await goto(`${window.location.pathname}#comments`, { invalidateAll: true, replaceState: false })
+							setTimeout(() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' }), 100)
+						}
+					}
+				}}
+				class="space-y-2"
+			>
 				<input type="hidden" name="comment_id" value={comment.id} />
 				<Textarea
 					name="content"
 					bind:value={editContent}
 					rows={3}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' && !e.shiftKey) {
+							e.preventDefault()
+							if (!editContent.trim()) return
+							const form = e.currentTarget.closest('form')
+							if (form) form.requestSubmit()
+						}
+					}}
 				/>
 				<div class="flex justify-end gap-2">
 					<Button
@@ -175,7 +198,19 @@
 							수정
 						</Button>
 						
-						<form method="POST" action="?/deleteComment" use:enhance class="inline">
+						<form 
+					method="POST" 
+					action="?/deleteComment" 
+					use:enhance={() => {
+						return async ({ result }) => {
+							if (result.type === 'success') {
+								await goto(`${window.location.pathname}#comments`, { invalidateAll: true, replaceState: false })
+								setTimeout(() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' }), 100)
+							}
+						}
+					}}
+					class="inline"
+				>
 							<input type="hidden" name="comment_id" value={comment.id} />
 							<Button
 								type="submit"
@@ -201,13 +236,35 @@
 
 <!-- 답글 작성 폼 -->
 {#if isReplying}
-	<form method="POST" action="?/comment" use:enhance class="ml-12 space-y-2">
+	<form 
+		method="POST" 
+		action="?/comment" 
+		use:enhance={() => {
+			return async ({ result }) => {
+				if (result.type === 'success') {
+					replyContent = ''
+					onToggleReply(comment.id)
+					await goto(`${window.location.pathname}#comments`, { invalidateAll: true, replaceState: false })
+					setTimeout(() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' }), 100)
+				}
+			}
+		}}
+		class="ml-12 space-y-2"
+	>
 		<input type="hidden" name="parent_comment_id" value={comment.id} />
 		<Textarea
 			name="content"
 			bind:value={replyContent}
-			placeholder="답글을 입력하세요..."
+			placeholder="답글을 입력하세요... (Enter: 작성, Shift+Enter: 줄바꿈)"
 			rows={2}
+			onkeydown={(e) => {
+				if (e.key === 'Enter' && !e.shiftKey) {
+					e.preventDefault()
+					if (!replyContent.trim()) return
+					const form = e.currentTarget.closest('form')
+					if (form) form.requestSubmit()
+				}
+			}}
 		/>
 		<div class="flex justify-end gap-2">
 			<Button

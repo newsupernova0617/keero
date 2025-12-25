@@ -1,9 +1,10 @@
 """
 Railway용 크롤러 스케줄러
 
-4분 간격으로 8개 사이트를 병렬 크롤링합니다.
-- 각 사이트는 32분마다 크롤링됨 (8 × 4분 = 32분)
-- 사용자는 4분마다 새 글을 볼 수 있음
+5분 간격으로 6개 사이트를 2그룹으로 나눠 병렬 크롤링합니다.
+- 그룹 1 (00분): 루리웹, 오유, 뽐뿌 (3개 동시)
+- 그룹 2 (05분): 펨코, 웃대, 개드립 (3개 동시)
+- 10분마다 전체 사이트 업데이트
 - BackgroundScheduler + ThreadPoolExecutor로 독립 실행
 """
 
@@ -49,30 +50,18 @@ def main():
         executors=executors
     )
     
-    # 8개 사이트 목록 (순서대로 크롤링)
-    sites = [
-        "ruliweb",
-        "todayhumor",
-        "ppomppu",
-        "fmkorea",
-        "mlbpark",
-        "clien",
-        "humoruniv",
-        "dogdrip"
-    ]
+    # 6개 사이트를 2그룹으로 분할
+    group1 = ["ruliweb", "todayhumor", "ppomppu"]      # 그룹 1: 00분
+    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 05분
     
     # 현재 시간
     now = datetime.now()
     
-    # 각 사이트를 4분 간격으로 스케줄링
-    for index, site_name in enumerate(sites):
-        # 시작 시간: 현재 시간 + (인덱스 × 4분)
-        start_time = now + timedelta(seconds=index * 240)  # 240초 = 4분
-        
-        # 32분(1920초) 간격으로 반복
+    # 그룹 1: 즉시 시작, 10분마다 반복
+    for site_name in group1:
         trigger = IntervalTrigger(
-            seconds=1920,  # 32분 = 1920초 (8 × 4분)
-            start_date=start_time,
+            minutes=10,  # 10분마다
+            start_date=now,
             timezone='Asia/Seoul'
         )
         
@@ -81,13 +70,35 @@ def main():
             trigger=trigger,
             args=[site_name],
             id=f'crawler_{site_name}',
-            name=f'Crawl {site_name}',
+            name=f'Crawl {site_name} (Group 1)',
             max_instances=1,  # 같은 사이트 동시 실행 방지
             coalesce=True,    # 누락된 작업 병합
             misfire_grace_time=300  # 5분 이내 누락 허용
         )
         
-        logger.info(f"📅 Scheduled: {site_name} - First run at {start_time.strftime('%H:%M:%S')}, then every 32 minutes")
+        logger.info(f"📅 Group 1: {site_name} - First run NOW, then every 10 minutes")
+    
+    # 그룹 2: 5분 후 시작, 10분마다 반복
+    start_time_group2 = now + timedelta(minutes=5)
+    for site_name in group2:
+        trigger = IntervalTrigger(
+            minutes=10,  # 10분마다
+            start_date=start_time_group2,
+            timezone='Asia/Seoul'
+        )
+        
+        scheduler.add_job(
+            crawl_site_job,
+            trigger=trigger,
+            args=[site_name],
+            id=f'crawler_{site_name}',
+            name=f'Crawl {site_name} (Group 2)',
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=300
+        )
+        
+        logger.info(f"📅 Group 2: {site_name} - First run at {start_time_group2.strftime('%H:%M:%S')}, then every 10 minutes")
     
     # 등록된 작업 출력
     logger.info("=" * 80)
@@ -97,7 +108,8 @@ def main():
     
     logger.info("=" * 80)
     logger.info("✅ Scheduler is running with 3 concurrent workers...")
-    logger.info("💡 Each site runs independently - delays won't affect others")
+    logger.info("💡 2 groups of 3 sites each, 5 minutes apart")
+    logger.info("🔄 All sites updated every 10 minutes")
     logger.info("=" * 80)
     
     # 스케줄러 시작 (백그라운드)

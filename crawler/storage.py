@@ -458,6 +458,17 @@ class DatabaseManager:
         2. pHash로 유사 이미지 찾기
         3. R2 업로드 실패 시에도 original_url 저장
         """
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # 방어 로직: placeholder/transparent.gif 필터링
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # extract_images()에서 이미 필터링했지만, 혹시 모를 경우를 대비
+        if 'transparent.gif' in image_url.lower() or 'placeholder' in image_url.lower():
+            raise Exception(f"Placeholder image detected and rejected: {image_url}")
+        
+        # UI 아이콘 이미지 필터링 (/images/ 경로)
+        if '/images/' in image_url:
+            raise Exception(f"UI icon image detected and rejected: {image_url}")
+        
         # URL 확장자로 동영상 파일 감지
         video_extensions = ('.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv')
         url_lower = image_url.lower()

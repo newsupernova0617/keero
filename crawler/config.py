@@ -192,8 +192,8 @@ class Config:
         # Early Stop: 중복 감지 시 조기 중단
         "early_stop": {
             "enabled": True,
-            "consecutive_duplicates": 5,  # 연속 N개 중복 시 중단
-            "page_duplicate_ratio": 0.8,  # 페이지의 N% 중복 시 중단
+            "consecutive_duplicates": 3,  # 연속 N개 중복 시 중단
+            "page_duplicate_ratio": 1.0,  # 페이지의 N% 중복 시 중단 (1.0 = 100% 중복)
         },
         # Batch Commit: DB 잠금 최소화
         "batch_commit": {

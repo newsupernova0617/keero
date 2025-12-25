@@ -147,33 +147,42 @@ export const actions: Actions = {
 
         const postId = parseInt(params.id)
 
-        // 사용자 DB에서 조회 또는 생성
-        let dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
+        try {
+            // 사용자 DB에서 조회 또는 생성
+            let dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
 
-        if (!dbUser || dbUser.length === 0) {
-            // 신규 사용자 생성
-            const newUser = await db
-                .insert(users)
-                .values({
-                    supabase_id: user.id,
-                    email: user.email || '',
-                    display_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous',
-                    avatar_url: user.user_metadata?.avatar_url
-                })
-                .returning()
+            if (!dbUser || dbUser.length === 0) {
+                // 신규 사용자 생성
+                const newUser = await db
+                    .insert(users)
+                    .values({
+                        supabase_id: user.id,
+                        email: user.email || '',
+                        display_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous',
+                        avatar_url: user.user_metadata?.avatar_url
+                    })
+                    .returning()
 
-            dbUser = newUser
+                dbUser = newUser
+            }
+
+            // 댓글 저장
+            const result = await db.insert(comments).values({
+                post_id: postId,
+                user_id: dbUser[0].id,
+                parent_comment_id: parentCommentId ? parseInt(parentCommentId) : null,
+                content: content.trim()
+            }).returning()
+
+            if (!result || result.length === 0) {
+                return fail(500, { error: '댓글 저장에 실패했습니다.' })
+            }
+
+            return { success: true }
+        } catch (error) {
+            console.error('댓글 작성 오류:', error)
+            return fail(500, { error: '댓글 작성 중 오류가 발생했습니다.' })
         }
-
-        // 댓글 저장
-        await db.insert(comments).values({
-            post_id: postId,
-            user_id: dbUser[0].id,
-            parent_comment_id: parentCommentId ? parseInt(parentCommentId) : null,
-            content: content.trim()
-        })
-
-        return { success: true }
     },
 
     // 댓글 수정
@@ -214,15 +223,25 @@ export const actions: Actions = {
         }
 
         // 댓글 수정
-        await db
-            .update(comments)
-            .set({
-                content: content.trim(),
-                updated_at: new Date().toISOString()
-            })
-            .where(eq(comments.id, parseInt(commentId)))
+        try {
+            const result = await db
+                .update(comments)
+                .set({
+                    content: content.trim(),
+                    updated_at: new Date().toISOString()
+                })
+                .where(eq(comments.id, parseInt(commentId)))
+                .returning()
 
-        return { success: true }
+            if (!result || result.length === 0) {
+                return fail(500, { error: '댓글 수정에 실패했습니다.' })
+            }
+
+            return { success: true }
+        } catch (error) {
+            console.error('댓글 수정 오류:', error)
+            return fail(500, { error: '댓글 수정 중 오류가 발생했습니다.' })
+        }
     },
 
     // 댓글 삭제
@@ -258,15 +277,25 @@ export const actions: Actions = {
         }
 
         // Soft delete
-        await db
-            .update(comments)
-            .set({
-                is_deleted: true,
-                content: '삭제된 댓글입니다.'
-            })
-            .where(eq(comments.id, parseInt(commentId)))
+        try {
+            const result = await db
+                .update(comments)
+                .set({
+                    is_deleted: true,
+                    content: '삭제된 댓글입니다.'
+                })
+                .where(eq(comments.id, parseInt(commentId)))
+                .returning()
 
-        return { success: true }
+            if (!result || result.length === 0) {
+                return fail(500, { error: '댓글 삭제에 실패했습니다.' })
+            }
+
+            return { success: true }
+        } catch (error) {
+            console.error('댓글 삭제 오류:', error)
+            return fail(500, { error: '댓글 삭제 중 오류가 발생했습니다.' })
+        }
     },
 
     // 좋아요 토글

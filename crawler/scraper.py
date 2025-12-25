@@ -194,6 +194,12 @@ class Scraper:
                 link = item
             if link and link.get("href"):
                 url = urljoin(self.base_url, link["href"])
+                
+                # 뽐뿌: freeboard 제외 (humor만 허용)
+                if 'ppomppu.co.kr' in self.base_url:
+                    if 'id=freeboard' in url:
+                        continue  # 자유게시판 스킵
+                
                 urls.append(url)
 
         return urls

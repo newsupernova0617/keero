@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types'
 	import { enhance } from '$app/forms'
+	import { goto } from '$app/navigation'
+	import { tick } from 'svelte'
 	import DOMPurify from 'isomorphic-dompurify'
 	import * as Card from '$lib/components/ui/card'
 	import { Badge } from '$lib/components/ui/badge'
@@ -288,7 +290,7 @@
 	{/if}
 
 	<!-- 댓글 섹션 -->
-	<Card.Root>
+	<Card.Root id="comments">
 		<Card.Header>
 			<Card.Title class="flex items-center gap-2">
 				<MessageSquare class="h-5 w-5" />
@@ -300,12 +302,47 @@
 		<Card.Content class="space-y-6">
 			<!-- 댓글 작성 폼 -->
 			{#if session}
-				<form method="POST" action="?/comment" use:enhance class="space-y-3">
+				<form 
+					method="POST" 
+					action="?/comment" 
+					use:enhance={() => {
+						return async ({ result }) => {
+							if (result.type === 'success') {
+								commentContent = ''
+								
+								// URL 해시로 댓글 섹션 이동
+								await goto(`${window.location.pathname}#comments`, { 
+									invalidateAll: true,
+									replaceState: false
+								})
+								
+								// DOM 업데이트 완료까지 대기
+								await tick()
+								await tick()
+								
+								// 댓글 섹션으로 스크롤
+								const commentsEl = document.getElementById('comments')
+								if (commentsEl) {
+									commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+								}
+							}
+						}
+					}}
+					class="space-y-3"
+				>
 					<Textarea
 						name="content"
 						bind:value={commentContent}
-						placeholder="댓글을 입력하세요..."
+						placeholder="댓글을 입력하세요... (Enter: 작성, Shift+Enter: 줄바꿈)"
 						rows={3}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' && !e.shiftKey) {
+								e.preventDefault()
+								if (!commentContent.trim()) return
+								const form = e.currentTarget.closest('form')
+								if (form) form.requestSubmit()
+							}
+						}}
 					/>
 					<div class="flex justify-end">
 						<Button type="submit" size="sm">

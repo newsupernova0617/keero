@@ -94,7 +94,7 @@
 				<!-- 게시글 카드 -->
 				<a 
 					href="/post/{post.id}" 
-					class="group block transition-transform hover:scale-[1.02]"
+					class="group block cursor-pointer transition-transform hover:scale-[1.02]"
 				>
 					<Card.Root class="h-full overflow-hidden border-2 transition-all hover:border-primary/50 hover:shadow-xl">
 						{#if post.thumbnail}

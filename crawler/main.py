@@ -126,6 +126,47 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
             
             total_processed += 1
             
+            # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            # URL 중복 체크 (파싱 전에 먼저 확인)
+            # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            from storage import Post
+            existing = db.session.query(Post).filter_by(source_url=url).first()
+            
+            if existing:
+                # 중복 게시글 → 파싱하지 않고 스킵
+                stats["duplicates"] += 1
+                page_duplicates += 1
+                consecutive_duplicates += 1
+                logger.debug(f"   ⏭️  Duplicate (URL): {url}")
+                
+                # Early Stop: 연속 중복 체크
+                if (
+                    early_stop_config["enabled"]
+                    and consecutive_duplicates >= early_stop_config["consecutive_duplicates"]
+                ):
+                    logger.info(
+                        f"⏹️  Early Stop: {consecutive_duplicates} consecutive duplicates found"
+                    )
+                    stats["early_stopped"] = True
+                    
+                    # 마지막 커밋 (배치 모드)
+                    if batch_enabled and posts_since_commit > 0:
+                        commit_start = time_module.time()
+                        db.flush()
+                        commit_time = time_module.time() - commit_start
+                        
+                        stats["commits"] += 1
+                        logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
+                    
+                    return stats
+                
+                # 다음 게시글로 (파싱 안 함)
+                continue
+            
+            # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            # 새 게시글 → 파싱 + 저장
+            # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
             # 게시글 파싱 (Config의 max_retries 사용)
             try:
                 post_data = scraper.parse_post(url, Config.CRAWL_CONFIG["max_retries"])
@@ -149,7 +190,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
             post_id = db.save_post_with_html(post_data, post_data["images"])
 
             if not post_id:
-                # 중복 게시글
+                # 중복 게시글 (URL은 다르지만 content_hash가 같은 경우)
                 stats["duplicates"] += 1
                 page_duplicates += 1
                 consecutive_duplicates += 1

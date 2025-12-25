@@ -2,213 +2,198 @@
 
 ## 📋 개요
 
-7분 30초 간격으로 8개 사이트를 순차적으로 크롤링합니다.
+**최적화된 2그룹 병렬 크롤링**
 
-- 각 사이트는 1시간마다 크롤링됨 (8 × 7.5분 = 60분)
-- 사용자는 7분 30초마다 새 글을 볼 수 있음
-- 한 사이클이 정확히 1시간이므로 예측 가능한 스케줄
+- **그룹 1** (00분): 루리웹, 오유, 뽐뿌 (3개 동시)
+- **그룹 2** (05분): 펨코, 웃대, 개드립 (3개 동시)
+- **업데이트 주기**: 10분마다 전체 사이트 업데이트
+- **동시 실행**: 최대 3개 사이트 병렬 처리
 
 ## 🕐 스케줄 타임라인
 
-스케줄러 시작 시간을 기준으로 순차 실행:
-
-| 시간 오프셋 | 사이트     | 크롤링 방식     | 비고            |
-| ----------- | ---------- | --------------- | --------------- |
-| +0:00       | Ruliweb    | requests        | 빠름 (30초~1분) |
-| +7:30       | TodayHumor | requests        | 빠름 (30초~1분) |
-| +15:00      | Ppomppu    | requests        | 빠름 (30초~1분) |
-| +22:30      | FMKorea    | Playwright      | 느림 (1~2분)    |
-| +30:00      | MLBPark    | Playwright      | 느림 (1~2분)    |
-| +37:30      | Clien      | Playwright      | 느림 (1~2분)    |
-| +45:00      | Humoruniv  | Playwright      | 느림 (1~2분)    |
-| +52:30      | Dogdrip    | Playwright      | 느림 (1~2분)    |
-| +60:00      | Ruliweb    | (1시간 후 반복) |
-
-## 🔧 Windows 작업 스케줄러 설정 방법
-
-### 1단계: 작업 스케줄러 열기
-
 ```
-시작 → "작업 스케줄러" 검색 → 실행
+00:00 - 그룹 1 시작 (루리웹 + 오유 + 뽐뿌)
+00:05 - 그룹 2 시작 (펨코 + 웃대 + 개드립)
+00:10 - 그룹 1 재실행
+00:15 - 그룹 2 재실행
+00:20 - 그룹 1 재실행
+...
 ```
 
-### 2단계: 기본 작업 만들기 (8번 반복)
+**사용자 경험:**
 
-#### 작업 1: Ruliweb
+- 5분마다 새 글 업데이트 (어떤 그룹이든)
+- 10분마다 전체 사이트 업데이트
 
-1. **이름**: `Crawler - Ruliweb`
-2. **트리거**:
-   - 매일
-   - 시작: 00:00
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램 시작
-   - 프로그램: `C:\Users\yj437\OneDrive\Desktop\coding_windows\aagag_clone\crawler\run_crawler.bat`
-   - 인수: `ruliweb`
-   - 시작 위치: `C:\Users\yj437\OneDrive\Desktop\coding_windows\aagag_clone\crawler`
+## 🚀 Railway 배포 (자동 스케줄링)
 
-#### 작업 2: TodayHumor
+### 실행 방법
 
-1. **이름**: `Crawler - TodayHumor`
-2. **트리거**:
-   - 매일
-   - 시작: 00:15
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `todayhumor`
+```bash
+python scheduler.py
+```
 
-#### 작업 3: Ppomppu
+### 특징
 
-1. **이름**: `Crawler - Ppomppu`
-2. **트리거**:
-   - 매일
-   - 시작: 00:30
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `ppomppu`
+- ✅ **BackgroundScheduler**: 백그라운드에서 자동 실행
+- ✅ **ThreadPoolExecutor**: 3개 사이트 동시 병렬 처리
+- ✅ **독립 실행**: 각 사이트 크롤링이 서로 영향 없음
+- ✅ **자동 복구**: 실패 시 다음 주기에 재시도
 
-#### 작업 4: FMKorea
+### 로그 확인
 
-1. **이름**: `Crawler - FMKorea`
-2. **트리거**:
-   - 매일
-   - 시작: 00:45
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `fmkorea`
+```bash
+# Railway 로그
+railway logs
 
-#### 작업 5: MLBPark
+# 또는 로컬 로그
+tail -f ../data/logs.db
+```
 
-1. **이름**: `Crawler - MLBPark`
-2. **트리거**:
-   - 매일
-   - 시작: 01:00
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `mlbpark`
+## 📊 사이트별 크롤링 정보
 
-#### 작업 6: Clien
+| 사이트 | 그룹 | 방식       | 평균 시간 | 페이지 |
+| ------ | ---- | ---------- | --------- | ------ |
+| 루리웹 | 1    | requests   | ~30초     | 1      |
+| 오유   | 1    | Playwright | ~1분      | 1      |
+| 뽐뿌   | 1    | Playwright | ~30초     | 1      |
+| 펨코   | 2    | Playwright | ~1분      | 1      |
+| 웃대   | 2    | Playwright | ~1분      | 1      |
+| 개드립 | 2    | requests   | ~30초     | 1      |
 
-1. **이름**: `Crawler - Clien`
-2. **트리거**:
-   - 매일
-   - 시작: 01:15
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `clien`
+**예상 총 시간:**
 
-#### 작업 7: Humoruniv
+- 그룹 1: ~1분 (병렬 실행, 가장 느린 것 기준)
+- 그룹 2: ~1분 (병렬 실행, 가장 느린 것 기준)
 
-1. **이름**: `Crawler - Humoruniv`
-2. **트리거**:
-   - 매일
-   - 시작: 01:30
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `humoruniv`
+## ⚙️ 설정 변경
 
-#### 작업 8: Dogdrip
+### 크롤링 주기 변경
 
-1. **이름**: `Crawler - Dogdrip`
-2. **트리거**:
-   - 매일
-   - 시작: 01:45
-   - 반복 간격: 2시간
-   - 기간: 1일
-3. **동작**:
-   - 프로그램: `run_crawler.bat`
-   - 인수: `dogdrip`
+`scheduler.py` 수정:
+
+```python
+# 10분 → 15분으로 변경
+trigger = IntervalTrigger(
+    minutes=15,  # 여기 수정
+    start_date=now,
+    timezone='Asia/Seoul'
+)
+```
+
+### 그룹 간격 변경
+
+```python
+# 5분 → 7분으로 변경
+start_time_group2 = now + timedelta(minutes=7)  # 여기 수정
+```
+
+### 동시 실행 수 변경
+
+```python
+# 3개 → 6개로 변경 (모든 사이트 동시 실행)
+executors = {
+    'default': ThreadPoolExecutor(max_workers=6)  # 여기 수정
+}
+```
 
 ## 🧪 테스트 방법
 
-### 수동 테스트
+### 로컬 테스트
 
 ```bash
-cd crawler
-python main.py --site ruliweb
-```
+# 단일 사이트 테스트
+python main.py --site ruliweb --limit 3
 
-### 배치 파일 테스트
-
-```bash
-cd crawler
-run_crawler.bat ruliweb
+# 스케줄러 테스트 (실제 실행)
+python scheduler.py
 ```
 
 ### 로그 확인
 
 ```bash
-cd crawler/logs
-type crawler_ruliweb_20241222.log
+# SQLite 로그 확인
+sqlite3 ../data/logs.db "SELECT * FROM logs ORDER BY timestamp DESC LIMIT 10;"
 ```
 
-## 📊 모니터링
+## 🔍 모니터링
 
-### 로그 파일 위치
+### 크롤링 상태 확인
 
-```
-crawler/logs/crawler_[사이트명]_[날짜].log
-```
+```bash
+# 최근 크롤링 통계
+sqlite3 ../data/posts.db "SELECT site_name, COUNT(*) as posts FROM posts GROUP BY site_name;"
 
-### 로그 내용
-
-- 시작/종료 시간
-- 크롤링된 게시글 수
-- 에러 메시지
-
-## ⚙️ 고급 설정
-
-### 조건 추가 (선택사항)
-
-- **전원**: AC 전원 연결 시에만 실행
-- **유휴**: 컴퓨터가 유휴 상태일 때만
-- **네트워크**: 네트워크 연결 시에만
-
-### 우선순위
-
-- 일반 (기본값)
-- 낮음 (백그라운드 실행)
-
-## 🔍 문제 해결
-
-### 작업이 실행되지 않음
-
-1. 작업 스케줄러에서 "마지막 실행 결과" 확인
-2. 로그 파일 확인
-3. 수동으로 배치 파일 실행해보기
-
-### Python 경로 오류
-
-`run_crawler.bat`에서 Python 경로 수정:
-
-```batch
-set PYTHON=C:\Python311\python.exe
+# 최근 크롤링 시간
+sqlite3 ../data/posts.db "SELECT site_name, MAX(crawled_at) as last_crawl FROM posts GROUP BY site_name;"
 ```
 
-### 권한 오류
+### 에러 확인
 
-작업 스케줄러에서:
+```bash
+# 최근 에러 로그
+sqlite3 ../data/logs.db "SELECT * FROM logs WHERE level = 'ERROR' ORDER BY timestamp DESC LIMIT 10;"
+```
 
-- "가장 높은 권한으로 실행" 체크
-- "사용자가 로그온했는지 여부에 관계없이 실행" 선택
+## 🔧 문제 해결
+
+### 스케줄러가 멈춤
+
+```bash
+# 프로세스 확인
+ps aux | grep scheduler.py
+
+# 재시작
+pkill -f scheduler.py
+python scheduler.py
+```
+
+### 특정 사이트만 실패
+
+```bash
+# 해당 사이트만 수동 실행
+python main.py --site fmkorea --limit 3
+
+# 로그 확인
+sqlite3 ../data/logs.db "SELECT * FROM logs WHERE message LIKE '%fmkorea%' ORDER BY timestamp DESC LIMIT 10;"
+```
+
+### DB 잠금 오류
+
+```bash
+# WAL 모드 확인
+sqlite3 ../data/posts.db "PRAGMA journal_mode;"
+
+# WAL 모드로 변경 (자동으로 설정됨)
+sqlite3 ../data/posts.db "PRAGMA journal_mode=WAL;"
+```
 
 ## 📝 참고사항
 
-- 각 사이트는 2시간마다 크롤링됨
-- 배치 커밋으로 DB 잠금 최소화
-- Early Stop으로 중복 시 빠른 종료
-- Playwright 사이트는 3~5분 소요
-- requests 사이트는 1~2분 소요
+### Early Stop 설정
+
+- 연속 중복 3개 → 즉시 중단
+- 페이지 100% 중복 → 다음 페이지 안 감
+
+### Batch Commit 설정
+
+- 20개 게시글마다 커밋
+- 또는 5초마다 커밋
+
+### 최적화 팁
+
+1. **동영상 많은 사이트**: 그룹 분리 권장
+2. **느린 사이트**: Playwright 대신 requests 사용 검토
+3. **서버 부하**: 동시 실행 수 조절 (max_workers)
+
+## 🎯 성능 지표
+
+**기존 스케줄링 (순차 실행):**
+
+- 업데이트 주기: 32분
+- 총 소요 시간: ~24분
+
+**새 스케줄링 (2그룹 병렬):**
+
+- 업데이트 주기: 10분 ✅ (3.2배 빠름)
+- 총 소요 시간: ~2분 ✅ (12배 빠름)
