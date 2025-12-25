@@ -1,5 +1,7 @@
+import { PUBLIC_BASE_URL } from '$env/static/public'
+
 export async function GET() {
-    const baseUrl = 'https://yourdomain.com' // TODO: 환경변수로 변경
+    const baseUrl = PUBLIC_BASE_URL || 'http://localhost:5173'
 
     const robotsTxt = `User-agent: *
 Allow: /

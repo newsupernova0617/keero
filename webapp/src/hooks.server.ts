@@ -33,6 +33,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         const {
             data: { session }
         } = await event.locals.supabase.auth.getSession()
+        
         if (!session) {
             return { session: null, user: null }
         }
@@ -41,12 +42,27 @@ export const handle: Handle = async ({ event, resolve }) => {
             data: { user },
             error
         } = await event.locals.supabase.auth.getUser()
-        if (error) {
-            // JWT validation has failed
+        
+        if (error || !user) {
             return { session: null, user: null }
         }
 
-        return { session, user }
+        /**
+         * IMPORTANT: Do NOT spread `...session` or access `session.user`.
+         * Accessing `session.user` on the object returned by `getSession` triggers a security warning log.
+         * We verify the user via `getUser()` above and knowingly construct a new safe session object.
+         */
+        const { access_token, refresh_token, expires_in, expires_at, token_type } = session
+        const newSession = {
+            access_token,
+            refresh_token,
+            expires_in,
+            expires_at,
+            token_type,
+            user // The verified user from getUser()
+        }
+
+        return { session: newSession, user }
     }
 
     return resolve(event, {

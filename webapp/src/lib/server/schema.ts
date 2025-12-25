@@ -7,6 +7,7 @@ export const posts = sqliteTable('posts', {
     title: text('title').notNull(),
     content: text('content'),
     content_html: text('content_html'),
+    content_hash: text('content_hash'), // SQLAlchemy에서 사용하는 중복 감지용 해시
     source_url: text('source_url').notNull().unique(),
     created_at: text('created_at').notNull(),
     crawled_at: text('crawled_at').default(sql`CURRENT_TIMESTAMP`),
@@ -18,14 +19,24 @@ export const images = sqliteTable('images', {
     post_id: integer('post_id')
         .notNull()
         .references(() => posts.id),
+    media_type: text('media_type'),
+    md5_hash: text('md5_hash'), // SQLAlchemy에서 사용하는 이미지 중복 감지용
+    perceptual_hash: text('perceptual_hash'), // SQLAlchemy에서 사용하는 유사 이미지 감지용
+    r2_key: text('r2_key').notNull(),
     r2_url: text('r2_url').notNull(),
     original_url: text('original_url'),
-    media_type: text('media_type'),
+    order_index: integer('order_index').notNull().default(0),
+    uploaded_at: text('uploaded_at'),
+    is_similar_match: integer('is_similar_match', { mode: 'boolean' }),
+    duration_seconds: integer('duration_seconds'),
+    frame_count: integer('frame_count'),
+    original_size_bytes: integer('original_size_bytes'),
+    optimized_size_bytes: integer('optimized_size_bytes'),
+    original_format: text('original_format'),
+    optimized_format: text('optimized_format'),
     width: integer('width'),
     height: integer('height'),
-    file_size: integer('file_size'),
-    duration_seconds: integer('duration_seconds'),
-    order_index: integer('order_index').notNull().default(0)
+    file_size: integer('file_size')
 })
 
 export const users = sqliteTable('users', {

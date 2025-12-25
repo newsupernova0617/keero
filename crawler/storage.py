@@ -73,6 +73,7 @@ class Image(Base):
     # R2 저장 정보
     r2_key = Column(Text, nullable=False)
     r2_url = Column(Text, nullable=False)
+    original_url = Column(Text)  # 원본 이미지 URL (R2 업로드 실패 시 fallback)
     order_index = Column(Integer, default=0)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     is_similar_match = Column(Boolean, default=False)
@@ -86,8 +87,14 @@ class Image(Base):
     optimized_size_bytes = Column(Integer)   # 최적화 후 용량
     original_format = Column(String(10))     # 원본 포맷 (jpg, png, gif, mp4 등)
     optimized_format = Column(String(10))    # 최적화 포맷 (webp, mp4 등)
+    
+    # 이미지 크기 정보
+    width = Column(Integer)      # 이미지 가로 크기 (px)
+    height = Column(Integer)     # 이미지 세로 크기 (px)
+    file_size = Column(Integer)  # 파일 크기 (bytes) - optimized_size_bytes와 동일
 
     post = relationship("Post", back_populates="images")
+
 
 
 def normalize_text(text: str) -> str:
@@ -119,26 +126,81 @@ def get_image_hash(image_data: bytes) -> Tuple[str, str]:
 
 def replace_image_urls_in_html(html: str, image_mapping: Dict[str, str]) -> str:
     """
-    HTML 내 이미지 URL을 R2 URL로 치환
+    HTML 내 이미지 URL을 R2 URL로 치환하고 UI 아이콘 제거
     
     Args:
         html: 원본 HTML
         image_mapping: {원본_URL: R2_URL} 매핑
     
     Returns:
-        이미지 URL이 R2 URL로 치환된 HTML
+        이미지 URL이 R2 URL로 치환되고 UI 아이콘이 제거된 HTML
     """
     from bs4 import BeautifulSoup
+    from urllib.parse import urlparse
     
     if not html or not image_mapping:
         return html
     
     soup = BeautifulSoup(html, 'lxml')
     
+    # URL 정규화 함수 (프로토콜 차이 무시)
+    def normalize_url(url: str) -> str:
+        """프로토콜을 제거하고 URL을 정규화"""
+        if url.startswith('//'):
+            url = 'https:' + url
+        return url.replace('https://', '').replace('http://', '')
+    
+    # 정규화된 매핑 생성
+    normalized_mapping = {}
+    for original_url, r2_url in image_mapping.items():
+        normalized_key = normalize_url(original_url)
+        normalized_mapping[normalized_key] = r2_url
+    
+    # 1단계: 이미지 URL을 R2 URL로 치환
     for img in soup.find_all('img'):
-        original_src = img.get('src')
-        if original_src and original_src in image_mapping:
-            img['src'] = image_mapping[original_src]
+        # Lazy loading 처리: data-original 우선 확인 (FMKorea 등)
+        original_src = img.get('data-original') or img.get('src')
+        if original_src:
+            # 상대 경로나 프로토콜 상대 경로 처리
+            normalized_src = normalize_url(original_src)
+            
+            if normalized_src in normalized_mapping:
+                # src 속성을 R2 URL로 교체
+                img['src'] = normalized_mapping[normalized_src]
+                # data-original 속성 제거 (더 이상 필요 없음)
+                if img.get('data-original'):
+                    del img['data-original']
+    
+    # 2단계: UI 아이콘 및 R2로 치환되지 않은 이미지 제거
+    for img in soup.find_all('img'):
+        src = img.get('src', '')
+        # R2 URL이 아니면 제거 (상대 경로, /images/, icon_ 등)
+        if 'r2.dev' not in src:
+            img.decompose()
+    
+    # 3단계: 비디오 URL을 R2 URL로 치환
+    for video in soup.find_all('video'):
+        original_src = video.get('src')
+        if original_src:
+            normalized_src = normalize_url(original_src)
+            if normalized_src in normalized_mapping:
+                video['src'] = normalized_mapping[normalized_src]
+        
+        # <source> 태그도 처리
+        for source in video.find_all('source'):
+            original_src = source.get('src')
+            if original_src:
+                normalized_src = normalize_url(original_src)
+                if normalized_src in normalized_mapping:
+                    source['src'] = normalized_mapping[normalized_src]
+    
+    # 4단계: 이미지를 감싸는 <a> 태그의 href도 R2 URL로 치환
+    for a in soup.find_all('a'):
+        href = a.get('href')
+        if href:
+            normalized_href = normalize_url(href)
+            if normalized_href in normalized_mapping:
+                a['href'] = normalized_mapping[normalized_href]
     
     return str(soup)
 
@@ -391,10 +453,68 @@ class DatabaseManager:
 
     def save_image_smart(self, post_id: int, image_url: str, order_index: int) -> Image:
         """
-        이미지 저장 (2단계 중복 체크)
+        이미지/동영상 저장 (2단계 중복 체크)
         1. MD5로 정확히 같은 파일 찾기
         2. pHash로 유사 이미지 찾기
+        3. R2 업로드 실패 시에도 original_url 저장
         """
+        # URL 확장자로 동영상 파일 감지
+        video_extensions = ('.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv')
+        url_lower = image_url.lower()
+        is_video = any(url_lower.endswith(ext) or f'{ext}?' in url_lower for ext in video_extensions)
+        
+        # 동영상 파일은 바로 동영상 처리
+        if is_video:
+            print(f"Detected video file: {image_url}")
+            video_data = self.download_image(image_url)  # download_image는 범용 다운로드 함수
+            md5_hash = hashlib.md5(video_data).hexdigest()
+            
+            # 동영상 최적화
+            try:
+                optimized_data, original_format, optimized_format, original_size, optimized_size = self.optimize_video(video_data, url_lower.split('.')[-1].split('?')[0])
+            except Exception as e:
+                print(f"Warning: Video optimization failed for {image_url}: {e}")
+                optimized_data = video_data
+                original_format = 'mp4'
+                optimized_format = 'mp4'
+                original_size = len(video_data)
+                optimized_size = len(video_data)
+            
+            # 이미지 크기 정보 추출 (동영상은 ffprobe 필요, 일단 None)
+            width, height = None, None
+            
+            # R2 키 생성
+            r2_key = f"images/{md5_hash}.{optimized_format}"
+            r2_url = None
+            
+            try:
+                r2_url = self.upload_to_r2(optimized_data, r2_key)
+            except Exception as e:
+                print(f"Warning: R2 upload failed for {image_url}, using original URL: {e}")
+                r2_key = ""
+                r2_url = image_url
+            
+            image = Image(
+                post_id=post_id,
+                md5_hash=md5_hash,
+                perceptual_hash=None,  # 동영상은 pHash 없음
+                r2_key=r2_key,
+                r2_url=r2_url,
+                original_url=image_url,
+                order_index=order_index,
+                is_similar_match=False,
+                original_format=original_format,
+                optimized_format=optimized_format,
+                original_size_bytes=original_size,
+                optimized_size_bytes=optimized_size,
+                width=width,
+                height=height,
+            )
+            self.session.add(image)
+            if self.auto_commit:
+                self.session.commit()
+            return image
+        
         # 이미지 다운로드
         img_data = self.download_image(image_url)
 
@@ -414,6 +534,7 @@ class DatabaseManager:
                 perceptual_hash=phash,
                 r2_key=exact_match.r2_key,
                 r2_url=exact_match.r2_url,
+                original_url=image_url,  # 원본 URL 저장
                 order_index=order_index,
                 is_similar_match=False,
             )
@@ -443,6 +564,7 @@ class DatabaseManager:
                     perceptual_hash=phash,
                     r2_key=r2_key,  # 유사 이미지의 R2 재사용
                     r2_url=r2_url,
+                    original_url=image_url,  # 원본 URL 저장
                     order_index=order_index,
                     is_similar_match=True,
                 )
@@ -452,10 +574,38 @@ class DatabaseManager:
                 return image
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        # 3단계: 새 이미지 → R2 업로드
+        # 3단계: 새 이미지 → 최적화 → R2 업로드 (실패해도 original_url 저장)
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        r2_key = f"images/{md5_hash}.jpg"
-        r2_url = self.upload_to_r2(img_data, r2_key)
+        
+        # 이미지 최적화 (WebP 변환)
+        try:
+            optimized_data, original_format, optimized_format, original_size, optimized_size = self.optimize_image(img_data)
+        except Exception as e:
+            print(f"Warning: Image optimization failed for {image_url}, using original: {e}")
+            optimized_data = img_data
+            original_format = 'unknown'
+            optimized_format = 'jpg'
+            original_size = len(img_data)
+            optimized_size = len(img_data)
+        
+        # 이미지 크기 정보 추출
+        try:
+            img_pil = PILImage.open(io.BytesIO(optimized_data))
+            width, height = img_pil.size
+        except:
+            width, height = None, None
+        
+        # R2 키 생성 (최적화된 포맷 사용)
+        r2_key = f"images/{md5_hash}.{optimized_format}"
+        r2_url = None
+        
+        try:
+            r2_url = self.upload_to_r2(optimized_data, r2_key)
+        except Exception as e:
+            # R2 업로드 실패 시에도 original_url로 저장
+            print(f"Warning: R2 upload failed for {image_url}, using original URL: {e}")
+            r2_key = ""  # R2 key는 비워둠
+            r2_url = image_url  # 원본 URL을 r2_url로 사용
 
         image = Image(
             post_id=post_id,
@@ -463,8 +613,16 @@ class DatabaseManager:
             perceptual_hash=phash,
             r2_key=r2_key,
             r2_url=r2_url,
+            original_url=image_url,  # 원본 URL 항상 저장
             order_index=order_index,
             is_similar_match=False,
+            # 최적화 정보 저장
+            original_format=original_format,
+            optimized_format=optimized_format,
+            original_size_bytes=original_size,
+            optimized_size_bytes=optimized_size,
+            width=width,
+            height=height,
         )
         self.session.add(image)
         if self.auto_commit:
@@ -481,6 +639,175 @@ class DatabaseManager:
             return response.content
         except requests.RequestException as e:
             raise Exception(f"Failed to download image from {url}: {e}") from e
+
+    def optimize_image(self, image_data: bytes) -> tuple[bytes, str, str, int, int]:
+        """
+        이미지 최적화 (WebP 변환)
+        
+        Args:
+            image_data: 원본 이미지 데이터
+        
+        Returns:
+            (optimized_data, original_format, optimized_format, original_size, optimized_size)
+        """
+        from PIL import Image
+        import io
+        
+        original_size = len(image_data)
+        
+        # 이미지 열기
+        img = PILImage.open(io.BytesIO(image_data))
+        original_format = img.format.lower() if img.format else 'unknown'
+        
+        # GIF는 동영상으로 변환 (VP9 WebM)
+        if original_format == 'gif':
+            try:
+                # GIF가 애니메이션인지 확인 (여러 프레임이 있는지)
+                is_animated = getattr(img, 'is_animated', False)
+                n_frames = getattr(img, 'n_frames', 1)
+                
+                if is_animated or n_frames > 1:
+                    # 애니메이션 GIF → VP9 WebM 변환
+                    print(f"Converting animated GIF ({n_frames} frames) to VP9 WebM...")
+                    return self.optimize_video(image_data, 'gif')
+            except Exception as e:
+                print(f"GIF animation check failed: {e}")
+            # 정적 GIF는 일반 이미지로 처리
+        
+        # RGBA 이미지는 RGB로 변환 (WebP는 투명도 지원하지만 파일 크기를 위해)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            # 투명 배경을 흰색으로
+            background = PILImage.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+            img = background
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # 이미지 크기 제한 (최대 2000px)
+        max_dimension = 2000
+        if max(img.size) > max_dimension:
+            ratio = max_dimension / max(img.size)
+            new_size = tuple(int(dim * ratio) for dim in img.size)
+            img = img.resize(new_size, PILImage.Resampling.LANCZOS)
+        
+        # WebP로 변환
+        output = io.BytesIO()
+        img.save(output, format='WEBP', quality=85, method=6)
+        optimized_data = output.getvalue()
+        optimized_size = len(optimized_data)
+        
+        return optimized_data, original_format, 'webp', original_size, optimized_size
+
+    def optimize_video(self, video_data: bytes, original_format: str) -> tuple[bytes, str, str, int, int]:
+        """
+        동영상/GIF 최적화 (VP9 WebM 변환)
+        
+        Args:
+            video_data: 원본 동영상/GIF 데이터
+            original_format: 원본 포맷 ('gif', 'mp4', 'webm' 등)
+        
+        Returns:
+            (optimized_data, original_format, optimized_format, original_size, optimized_size)
+        """
+        import ffmpeg
+        import tempfile
+        import os
+        import subprocess
+        
+        original_size = len(video_data)
+        
+        # 임시 파일 생성
+        with tempfile.NamedTemporaryFile(suffix=f'.{original_format}', delete=False) as input_file:
+            input_file.write(video_data)
+            input_path = input_file.name
+        
+        output_path = input_path.replace(f'.{original_format}', '.webm')
+        
+        try:
+            # ffmpeg-python을 사용한 VP9 WebM 변환
+            # 설정:
+            # - VP9 코덱
+            # - CRF 31 (품질, 낮을수록 고품질, 23-31 권장)
+            # - 2-pass 인코딩 (더 나은 압축)
+            # - 최대 해상도 1080p
+            # - 오디오: Opus 코덱 (WebM 표준)
+            
+            # 입력 비디오 정보 가져오기
+            probe = ffmpeg.probe(input_path)
+            video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+            width = int(video_info['width'])
+            height = int(video_info['height'])
+            duration = float(probe['format'].get('duration', 0))
+            
+            # 해상도 제한 (최대 1080p)
+            max_height = 1080
+            if height > max_height:
+                scale_ratio = max_height / height
+                new_width = int(width * scale_ratio)
+                new_height = max_height
+                # 2의 배수로 맞추기 (VP9 요구사항)
+                new_width = new_width - (new_width % 2)
+                new_height = new_height - (new_height % 2)
+                scale_filter = f'scale={new_width}:{new_height}'
+            else:
+                scale_filter = None
+            
+            # ffmpeg 명령 구성 (subprocess 사용)
+            cmd = [
+                'ffmpeg',
+                '-i', input_path,
+                '-vcodec', 'libvpx-vp9',
+                '-crf', '31',
+                '-b:v', '0',
+                '-cpu-used', '4',
+                '-row-mt', '1',
+                '-tile-columns', '2',
+                '-threads', '4',
+            ]
+            
+            # 해상도 제한이 필요한 경우
+            if scale_filter:
+                cmd.extend(['-vf', f'scale={new_width}:{new_height}'])
+            
+            # 오디오 처리
+            if 'audio' in [s['codec_type'] for s in probe['streams']]:
+                cmd.extend(['-acodec', 'libopus', '-b:a', '64k'])
+            
+            cmd.extend(['-y', output_path])  # -y: 덮어쓰기
+            
+            # 실행
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode != 0:
+                raise Exception(f"ffmpeg failed with code {result.returncode}: {result.stderr[:500]}")
+            
+            # 결과 파일 읽기
+            with open(output_path, 'rb') as f:
+                optimized_data = f.read()
+            
+            optimized_size = len(optimized_data)
+            
+            return optimized_data, original_format, 'webm', original_size, optimized_size
+            
+        except Exception as e:
+            print(f"Warning: Video optimization failed: {e}")
+            # 실패 시 원본 반환
+            return video_data, original_format, original_format, original_size, original_size
+            
+        finally:
+            # 임시 파일 삭제
+            try:
+                os.unlink(input_path)
+                if os.path.exists(output_path):
+                    os.unlink(output_path)
+            except:
+                pass
 
     def upload_to_r2(self, data: bytes, key: str) -> str:
         """
@@ -574,6 +901,10 @@ class R2Uploader:
             return "image/gif"
         elif key.endswith(".webp"):
             return "image/webp"
+        elif key.endswith(".webm"):
+            return "video/webm"
+        elif key.endswith(".mp4"):
+            return "video/mp4"
         else:
             return "application/octet-stream"
 

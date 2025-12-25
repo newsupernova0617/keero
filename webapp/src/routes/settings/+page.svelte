@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types'
+	import { enhance } from '$app/forms'
+	import { onMount } from 'svelte'
 	import * as Card from '$lib/components/ui/card'
 	import { Button } from '$lib/components/ui/button'
 	import { Input } from '$lib/components/ui/input'
@@ -9,13 +11,44 @@
 	import { Separator } from '$lib/components/ui/separator'
 	import { Bell, Moon, Globe, Trash2, Shield } from '@lucide/svelte'
 
-	let { data }: { data: PageData } = $props()
+	let { data, form }: { data: PageData; form: any } = $props()
 
 	// Settings state
-	let displayName = $derived(data.user?.email?.split('@')[0] || '')
+	let displayName = $state(data.dbUser?.display_name || data.user?.email?.split('@')[0] || '')
 	let emailNotifications = $state(true)
-	let darkMode = $state(false)
+	let isDark = $state(false)
 	let language = $state('ko')
+
+	// Update displayName when data changes (e.g., after form submission)
+	$effect(() => {
+		if (data.dbUser?.display_name) {
+			displayName = data.dbUser.display_name
+		}
+	})
+
+	// Dark mode
+	onMount(() => {
+		const stored = localStorage.getItem('theme')
+		if (stored) {
+			isDark = stored === 'dark'
+		} else {
+			isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+		}
+	})
+
+	function updateTheme() {
+		if (isDark) {
+			document.documentElement.classList.add('dark')
+		} else {
+			document.documentElement.classList.remove('dark')
+		}
+		localStorage.setItem('theme', isDark ? 'dark' : 'light')
+	}
+
+	function toggleDarkMode() {
+		isDark = !isDark
+		updateTheme()
+	}
 </script>
 
 <svelte:head>
@@ -38,38 +71,52 @@
 			<Card.Title>프로필 설정</Card.Title>
 			<Card.Description>공개 프로필 정보를 수정하세요</Card.Description>
 		</Card.Header>
-		<Card.Content class="space-y-4">
-			<div class="space-y-2">
-				<Label for="display-name">표시 이름</Label>
-				<Input
-					id="display-name"
-					type="text"
-					bind:value={displayName}
-					placeholder="사용자 이름"
-				/>
-				<p class="text-xs text-muted-foreground">
-					다른 사용자에게 표시될 이름입니다.
-				</p>
-			</div>
+		<form method="POST" action="?/updateProfile" use:enhance>
+			<Card.Content class="space-y-4">
+				{#if form?.success}
+					<div class="rounded-lg bg-green-50 p-3 text-sm text-green-800">
+						✓ {form.message}
+					</div>
+				{/if}
+				{#if form?.error}
+					<div class="rounded-lg bg-red-50 p-3 text-sm text-red-800">
+						✗ {form.error}
+					</div>
+				{/if}
 
-			<div class="space-y-2">
-				<Label for="email">이메일</Label>
-				<Input
-					id="email"
-					type="email"
-					value={data.user?.email}
-					disabled
-					class="bg-muted"
-				/>
-				<p class="text-xs text-muted-foreground">
-					이메일은 변경할 수 없습니다.
-				</p>
-			</div>
+				<div class="space-y-2">
+					<Label for="display-name">표시 이름</Label>
+					<Input
+						id="display-name"
+						name="display_name"
+						type="text"
+						bind:value={displayName}
+						placeholder="사용자 이름"
+					/>
+					<p class="text-xs text-muted-foreground">
+						다른 사용자에게 표시될 이름입니다.
+					</p>
+				</div>
 
-			<Button disabled>
-				변경사항 저장 (준비 중)
-			</Button>
-		</Card.Content>
+				<div class="space-y-2">
+					<Label for="email">이메일</Label>
+					<Input
+						id="email"
+						type="email"
+						value={data.user?.email}
+						disabled
+						class="bg-muted"
+					/>
+					<p class="text-xs text-muted-foreground">
+						이메일은 변경할 수 없습니다.
+					</p>
+				</div>
+
+				<Button type="submit">
+					변경사항 저장
+				</Button>
+			</Card.Content>
+		</form>
 	</Card.Root>
 
 	<!-- Notification Settings -->
@@ -127,12 +174,8 @@
 						어두운 테마를 사용합니다.
 					</p>
 				</div>
-				<Switch bind:checked={darkMode} disabled />
+				<Switch bind:checked={isDark} onCheckedChange={toggleDarkMode} />
 			</div>
-
-			<p class="text-xs text-muted-foreground">
-				💡 다크 모드는 준비 중입니다.
-			</p>
 		</Card.Content>
 	</Card.Root>
 

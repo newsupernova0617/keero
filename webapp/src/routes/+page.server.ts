@@ -49,7 +49,8 @@ export const load: PageServerLoad = async ({ url }) => {
 
             return {
                 ...post,
-                thumbnail: firstImage[0]?.r2_url || null
+                // R2 URL 우선 사용 (원본 URL은 fallback)
+                thumbnail: firstImage[0]?.r2_url || firstImage[0]?.original_url || null
             }
         })
     )

@@ -25,6 +25,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         .where(eq(images.post_id, postId))
         .orderBy(asc(images.order_index))
 
+    // 현재 사용자의 DB ID 조회 (먼저 가져오기)
+    const { user } = await locals.safeGetSession()
+    let currentUserId: number | null = null
+    if (user) {
+        const dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
+        if (dbUser && dbUser.length > 0) {
+            currentUserId = dbUser[0].id
+        }
+    }
+
     // 댓글 조회 (사용자 정보 포함)
     let postComments: Array<{
         id: number
@@ -37,6 +47,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         is_deleted: boolean | null
         user_email: string | null
         user_display_name: string | null
+        likeCount?: number
+        userLiked?: boolean
     }> = []
     try {
         postComments = await db
@@ -60,18 +72,32 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         console.log('Comments table not found, skipping comments:', error)
     }
 
-    // 현재 사용자의 DB ID 조회
-    const { user } = await locals.safeGetSession()
-    let currentUserId: number | null = null
-    if (user) {
-        const dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
-        if (dbUser && dbUser.length > 0) {
-            currentUserId = dbUser[0].id
+    // 각 댓글의 좋아요 정보 조회
+    const { likes } = await import('$lib/server/schema')
+    for (const comment of postComments) {
+        // 좋아요 수
+        const commentLikeCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(likes)
+            .where(eq(likes.comment_id, comment.id))
+            .then(result => result[0]?.count || 0)
+        
+        comment.likeCount = commentLikeCount
+
+        // 현재 사용자의 좋아요 여부
+        if (currentUserId) {
+            const userCommentLike = await db
+                .select()
+                .from(likes)
+                .where(sql`${likes.comment_id} = ${comment.id} AND ${likes.user_id} = ${currentUserId}`)
+                .limit(1)
+            comment.userLiked = userCommentLike.length > 0
+        } else {
+            comment.userLiked = false
         }
     }
 
-    // 좋아요 정보 조회
-    const { likes } = await import('$lib/server/schema')
+    // 게시글 좋아요 정보 조회
     const likeCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(likes)

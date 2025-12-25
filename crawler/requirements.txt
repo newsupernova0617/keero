@@ -25,6 +25,9 @@ playwright==1.40.0
 Pillow==10.1.0
 imagehash==4.3.1
 
+# 동영상 처리 (GIF/동영상 → VP9 WebM 변환)
+ffmpeg-python==0.2.0
+
 # 테스트 및 개발 도구
 pytest==7.4.3
 pytest-cov==4.1.0

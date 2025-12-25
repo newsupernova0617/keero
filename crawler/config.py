@@ -55,24 +55,24 @@ class Config:
             "selectors": {
                 "post_list": "div.fm_best_widget > ul li",
                 "post_link": "h3.title a",
-                "title": "h3.title a",
+                "title": "title",  # <title> 태그 사용 (h3.title a는 사이드바)
                 "content": "div.rd_body.clear",
                 "images": "div.rd_body img",
                 "date": "span.date.m_no",
             },
             "date_format": "auto",  # 2025.12.21 17:00 형식 자동 파싱
         },
-        # 실제 사이트: 루리웹 유머 베스트
+        # 실제 사이트: 루리웹 베스트 선택
         "ruliweb": {
             "base_url": "https://bbs.ruliweb.com",
-            "list_url": "https://bbs.ruliweb.com/best/humor",
+            "list_url": "https://bbs.ruliweb.com/best/selection",
             "site_name": "ruliweb",
             "enabled": True,  # 활성화
             "use_playwright": False,  # requests 사용
             "selectors": {
                 "post_list": "table.board_list_table tbody tr",
                 "post_link": "a.subject_link",
-                "title": "a.subject_link",
+                "title": "span.subject_text",  # 개별 게시글 페이지의 제목 (1개만 매칭)
                 "content": "div.view_content",
                 "images": "div.view_content img",
                 "date": "td.time",
@@ -82,17 +82,17 @@ class Config:
         # 엠엘비파크 (MLBPark)
         "mlbpark": {
             "base_url": "https://mlbpark.donga.com",
-            "list_url": "https://mlbpark.donga.com/mp/b.php?b=bullpen&select=stt&query=1",  # 추천순 정렬
+            "list_url": "https://mlbpark.donga.com/mp/honor.php?b=bullpen",  # 명예의 전당 - BULLPEN
             "site_name": "mlbpark",
-            "enabled": True,  # 활성화 (올바른 도메인으로 수정)
+            "enabled": False,  # 활성화 (올바른 도메인으로 수정)
             "use_playwright": True,  # Playwright 사용
             "selectors": {
-                "post_list": "div.talk_list table tbody tr",
-                "post_link": "a.txt",
-                "title": "a.txt",
-                "content": "div.ar_txt",
-                "images": "div.ar_txt img",
-                "date": "td:nth-child(4)",
+                "post_list": "li.items",  # 게시글 목록
+                "post_link": "a[href*='m=view']",  # 게시글 링크
+                "title": "div.tit h1",  # 제목
+                "content": "div.ar_txt",  # 본문
+                "images": "div.ar_txt img",  # 이미지
+                "date": "span.date",  # 날짜
             },
             "date_format": "auto",
         },
@@ -101,7 +101,7 @@ class Config:
             "base_url": "https://www.clien.net",
             "list_url": "https://www.clien.net/service/board/park?&od=T31&category=0",  # 추천순 정렬
             "site_name": "clien",
-            "enabled": True,  # 비활성화 (테스트 후 활성화)
+            "enabled": False,  # 비활성화 (테스트 후 활성화)
             "use_playwright": True,  # Cloudflare 우회 필요
             "selectors": {
                 "post_list": "div.list_item",
@@ -113,36 +113,36 @@ class Config:
             },
             "date_format": "auto",
         },
-        # 웃긴대학 (Humoruniv)
+        # 웃긴대학 (Humoruniv) - 모바일 버전
         "humoruniv": {
-            "base_url": "https://web.humoruniv.com",
-            "list_url": "https://web.humoruniv.com/board/humor/list.html?table=humorbest&st=year&year=2024",  # 연간 베스트
+            "base_url": "https://m.humoruniv.com/board/",  # 모바일 버전 (trailing slash 필수)
+            "list_url": "https://m.humoruniv.com/board/list.html?table=pds",  # 모바일 자유게시판
             "site_name": "humoruniv",
-            "enabled": True,  # 비활성화 (테스트 후 활성화)
+            "enabled": True,  # 활성화
             "use_playwright": True,  # JavaScript 렌더링 필요
             "selectors": {
-                "post_list": "table tr",
-                "post_link": "a[href*='read']",
-                "title": "a[href*='read']",
-                "content": "div.board_body",
-                "images": "div.board_body img",
-                "date": "td.datetime",
+                "post_list": "a.list_body_href[href*='read']",  # 일반 게시글 링크 (최신순)
+                "post_link": "a.list_body_href[href*='read']",  # 게시글 링크 (자기 자신)
+                "title": "div.read_subject h2",  # 개별 게시글 제목
+                "content": "div.wrap_body",  # 개별 게시글 본문
+                "images": "div.wrap_body img",  # 본문 내 이미지
+                "date": "span.date, div.date",  # 날짜
             },
             "date_format": "auto",
         },
         # 개드립 (Dogdrip)
         "dogdrip": {
             "base_url": "https://www.dogdrip.net",
-            "list_url": "https://www.dogdrip.net/dogdripbest",  # 붐업 베스트
+            "list_url": "https://www.dogdrip.net/?mid=dogdrip&sort_index=popular",  # 인기순 정렬
             "site_name": "dogdrip",
-            "enabled": True,  # 비활성화 (테스트 후 활성화)
-            "use_playwright": True,  # JavaScript 렌더링 필요
+            "enabled": True,  # 활성화 (테스트 후 활성화)
+            "use_playwright": False,  # HTTP 요청 사용 (Playwright는 403 차단됨)
             "selectors": {
                 "post_list": "li.ed",
                 "post_link": "a",
-                "title": "a",
-                "content": "div.xe_content",
-                "images": "div.xe_content img",
+                "title": "title",  # <title> 태그 사용
+                "content": "div[class*='document_'].rhymix_content",  # 본문만 (댓글 제외)
+                "images": "div[class*='document_'].rhymix_content img",  # 본문 이미지만
                 "date": "span.time",
             },
             "date_format": "auto",
@@ -152,14 +152,14 @@ class Config:
             "base_url": "http://www.todayhumor.co.kr",
             "list_url": "http://www.todayhumor.co.kr/board/list.php?table=bestofbest",
             "site_name": "todayhumor",
-            "enabled": True,  # 비활성화 (테스트 후 활성화)
-            "use_playwright": False,  # requests로 충분
+            "enabled": True,  # 활성화
+            "use_playwright": True,  # Playwright 사용 (이미지 다운로드 문제 해결)
             "selectors": {
                 "post_list": "table.table_list tbody tr",
                 "post_link": "td.subject a",
-                "title": "td.subject a",
-                "content": "div.viewbody",
-                "images": "div.viewbody img",
+                "title": "div.viewSubjectDiv",  # 개별 게시글 페이지의 제목
+                "content": "div.contentContainer",  # 개별 게시글 페이지의 본문
+                "images": "div.contentContainer img",
                 "date": "td.date",
             },
             "date_format": "auto",
@@ -167,17 +167,17 @@ class Config:
         # 뽐뿌 (Ppomppu)
         "ppomppu": {
             "base_url": "https://www.ppomppu.co.kr",
-            "list_url": "https://www.ppomppu.co.kr/zboard/zboard.php?id=humor&page_type=list&order_type=vote",  # 추천순
+            "list_url": "https://www.ppomppu.co.kr/hot.php?category=2",  # HOT 게시물 (유머/자유)
             "site_name": "ppomppu",
-            "enabled": True,  # 비활성화 (테스트 후 활성화)
-            "use_playwright": False,  # requests로 충분
+            "enabled": True,  # 활성화
+            "use_playwright": True,  # Playwright 사용
             "selectors": {
-                "post_list": "table tbody tr",
-                "post_link": "td.list_title a",
-                "title": "td.list_title a",  
-                "content": "div.board-contents",
-                "images": "div.board-contents img",
-                "date": "td.list_time",
+                "post_list": "tr.baseList",  # 게시글 목록
+                "post_link": "a.baseList-title",  # 게시글 링크
+                "title": "div#topTitle h1",  # 개별 게시글 제목
+                "content": "td.board-contents",  # 개별 게시글 본문
+                "images": "td.board-contents img",
+                "date": "td.board_date",  # 날짜
             },
             "date_format": "auto",
         },

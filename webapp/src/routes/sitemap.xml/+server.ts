@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db'
 import { posts } from '$lib/server/schema'
 import { desc, isNull } from 'drizzle-orm'
+import { PUBLIC_BASE_URL } from '$env/static/public'
 
 export async function GET() {
     try {
@@ -15,7 +16,7 @@ export async function GET() {
             .orderBy(desc(posts.id))
             .limit(1000)
 
-        const baseUrl = 'https://yourdomain.com' // TODO: 환경변수로 변경
+        const baseUrl = PUBLIC_BASE_URL || 'http://localhost:5173'
 
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

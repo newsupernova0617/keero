@@ -3,7 +3,8 @@
 	import { Button } from '$lib/components/ui/button'
 	import { Textarea } from '$lib/components/ui/textarea'
 	import * as Avatar from '$lib/components/ui/avatar'
-	import { Reply, Edit, Trash2 } from '@lucide/svelte'
+	import { Reply, Edit, Trash2, ThumbsUp } from '@lucide/svelte'
+	import Comment from './Comment.svelte'
 
 	let {
 		comment,
@@ -32,6 +33,58 @@
 	let isOwner = $derived(currentUserId !== null && comment.user_id === currentUserId)
 	let isEditing = $derived(editingComment === comment.id)
 	let isReplying = $derived(replyingTo === comment.id)
+	
+	// 좋아요 상태 관리 - 초기값을 $derived로 가져오기
+	let isLiking = $state(false)
+	let currentLikeCount = $state(0)
+	let currentUserLiked = $state(false)
+	
+	// 초기값 설정
+	$effect(() => {
+		currentLikeCount = comment.likeCount || 0
+		currentUserLiked = comment.userLiked || false
+	})
+	
+	// 좋아요 토글 함수
+	async function toggleLike() {
+		if (!session) {
+			window.location.href = '/auth/login'
+			return
+		}
+		
+		if (isLiking) return
+		
+		isLiking = true
+		
+		// 낙관적 업데이트
+		const prevLiked = currentUserLiked
+		const prevCount = currentLikeCount
+		
+		currentUserLiked = !currentUserLiked
+		currentLikeCount = currentUserLiked ? currentLikeCount + 1 : currentLikeCount - 1
+		
+		try {
+			const formData = new FormData()
+			formData.append('comment_id', comment.id.toString())
+			const response = await fetch('?/toggleCommentLike', {
+				method: 'POST',
+				body: formData
+			})
+			
+			if (!response.ok) {
+				// 실패 시 롤백
+				currentUserLiked = prevLiked
+				currentLikeCount = prevCount
+			}
+		} catch (error) {
+			console.error('좋아요 실패:', error)
+			// 에러 시 롤백
+			currentUserLiked = prevLiked
+			currentLikeCount = prevCount
+		} finally {
+			isLiking = false
+		}
+	}
 </script>
 
 <div class="flex gap-3">
@@ -85,6 +138,20 @@
 			<!-- 액션 버튼 -->
 			{#if session && !comment.is_deleted}
 				<div class="flex items-center gap-2">
+					<!-- 좋아요 버튼 -->
+					<Button
+						variant="ghost"
+						size="sm"
+						class="h-auto gap-1 p-0 text-xs hover:bg-transparent"
+						onclick={toggleLike}
+						disabled={isLiking}
+					>
+						<ThumbsUp class={currentUserLiked ? "h-3 w-3 fill-current text-primary" : "h-3 w-3"} />
+						{#if currentLikeCount > 0}
+							<span class={currentUserLiked ? "text-primary font-semibold" : ""}>{currentLikeCount}</span>
+						{/if}
+					</Button>
+					
 					<!-- 답글 버튼 -->
 					<Button
 						variant="ghost"
@@ -162,28 +229,18 @@
 {#if comment.replies && comment.replies.length > 0}
 	<div class="ml-12 space-y-3 border-l-2 pl-4">
 		{#each comment.replies as reply}
-			<div class="flex gap-3">
-				<Avatar.Root class="h-8 w-8">
-					<Avatar.Fallback class="bg-muted text-xs">
-						{reply.user_display_name?.[0] || '?'}
-					</Avatar.Fallback>
-				</Avatar.Root>
-				
-				<div class="flex-1 space-y-1">
-					<div class="flex items-center gap-2">
-						<span class="text-sm font-medium">{reply.user_display_name}</span>
-						<span class="text-xs text-muted-foreground">
-							{new Date(reply.created_at).toLocaleString('ko-KR')}
-						</span>
-						{#if reply.updated_at && reply.updated_at !== reply.created_at}
-							<span class="text-xs text-muted-foreground">(수정됨)</span>
-						{/if}
-					</div>
-					<p class="text-sm {reply.is_deleted ? 'text-muted-foreground italic' : ''}">
-						{reply.content}
-					</p>
-				</div>
-			</div>
+			<Comment
+				comment={reply}
+				{currentUserId}
+				{session}
+				{replyingTo}
+				{editingComment}
+				bind:replyContent
+				bind:editContent
+				{onToggleReply}
+				{onToggleEdit}
+				{onCancelEdit}
+			/>
 		{/each}
 	</div>
 {/if}

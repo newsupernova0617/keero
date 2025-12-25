@@ -12,16 +12,26 @@
 	import { AD_CONFIG } from '$lib/config/ads'
 	import Comment from '$lib/components/Comment.svelte'
 	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare } from '@lucide/svelte'
+	import { onMount } from 'svelte'
 
 	let { data }: { data: PageData } = $props()
 	let { post, images, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
+	
+	// 비디오에 controls 속성 추가
+	onMount(() => {
+		document.querySelectorAll('video').forEach(video => {
+			video.setAttribute('controls', '')
+			video.style.maxWidth = '100%'
+			video.style.height = 'auto'
+		})
+	})
 	
 	// HTML sanitize
 	let sanitizedHtml = $derived(
 		post.content_html 
 			? DOMPurify.sanitize(post.content_html, {
-				ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'img', 'div', 'span', 'blockquote', 'ul', 'ol', 'li'],
-				ALLOWED_ATTR: ['href', 'src', 'alt', 'title']
+				ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'img', 'video', 'source', 'div', 'span', 'blockquote', 'ul', 'ol', 'li', 'table', 'tbody', 'tr', 'td'],
+				ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
 			})
 			: ''
 	)
@@ -31,6 +41,57 @@
 	let replyContent = $state('')
 	let editingComment = $state<number | null>(null)
 	let editContent = $state('')
+	
+	// 좋아요 상태 관리
+	let isLiking = $state(false)
+	let currentLikeCount = $state(0)
+	let currentUserLiked = $state(false)
+	
+	// 초기값 설정
+	$effect(() => {
+		currentLikeCount = data.likeCount
+		currentUserLiked = data.userLiked
+	})
+	
+	// 좋아요 토글 함수
+	async function toggleLike() {
+		if (!session) {
+			window.location.href = '/auth/login'
+			return
+		}
+		
+		if (isLiking) return
+		
+		isLiking = true
+		
+		// 낙관적 업데이트 (Optimistic Update)
+		const prevLiked = currentUserLiked
+		const prevCount = currentLikeCount
+		
+		currentUserLiked = !currentUserLiked
+		currentLikeCount = currentUserLiked ? currentLikeCount + 1 : currentLikeCount - 1
+		
+		try {
+			const formData = new FormData()
+			const response = await fetch('?/toggleLike', {
+				method: 'POST',
+				body: formData
+			})
+			
+			if (!response.ok) {
+				// 실패 시 롤백
+				currentUserLiked = prevLiked
+				currentLikeCount = prevCount
+			}
+		} catch (error) {
+			console.error('좋아요 실패:', error)
+			// 에러 시 롤백
+			currentUserLiked = prevLiked
+			currentLikeCount = prevCount
+		} finally {
+			isLiking = false
+		}
+	}
 
 	// 댓글 트리 구조 생성
 	function buildCommentTree(comments: any[]) {
@@ -194,14 +255,25 @@
 			{/if}
 
 			<div class="flex gap-2">
-				<Button variant="outline" size="sm" class="gap-2">
-					<ThumbsUp class="h-4 w-4" />
+				<Button 
+					variant={currentUserLiked ? "default" : "outline"} 
+					size="sm" 
+					class="gap-2"
+					onclick={toggleLike}
+					disabled={isLiking}
+				>
+					<ThumbsUp class={currentUserLiked ? "h-4 w-4 fill-current" : "h-4 w-4"} />
 					좋아요
+					{#if currentLikeCount > 0}
+						<span class="ml-1 font-semibold">{currentLikeCount}</span>
+					{/if}
 				</Button>
+				<!-- 공유 버튼은 보류
 				<Button variant="outline" size="sm" class="gap-2">
 					<Share2 class="h-4 w-4" />
 					공유
 				</Button>
+				-->
 			</div>
 		</Card.Footer>
 	</Card.Root>

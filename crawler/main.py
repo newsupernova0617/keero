@@ -8,14 +8,20 @@
 - 에러 핸들링 및 로깅
 """
 
+import sys
 import argparse
 import logging
 import random
 import time
 
+# 출력 버퍼링 비활성화 (실시간 로그 출력)
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
 from config import Config
 from logging_db import setup_logging
 from scraper import ParseError
+from storage import Image
 
 # 로깅 설정 (SQLite + 콘솔)
 logger = setup_logging(
@@ -26,7 +32,7 @@ logger = setup_logging(
 logger = logging.getLogger(__name__)
 
 
-def crawl_site(site_key: str, site_config: dict, db, scraper_class):
+def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int = None):
     """
     단일 사이트 크롤링 (Early Stop + Batch Commit 지원)
 
@@ -38,6 +44,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
         site_config: 사이트 설정
         db: DatabaseManager 인스턴스
         scraper_class: Scraper 클래스
+        limit: 크롤링할 최대 게시글 수 (미니테스트용, None이면 제한 없음)
 
     Returns:
         dict: 크롤링 결과 통계
@@ -45,7 +52,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
     import time as time_module
     from config import Config
 
-    logger.info(f"=== Crawling {site_key} ===")
+    logger.info(f"=== Crawling {site_key} ===" + (f" (limit: {limit} posts)" if limit else ""))
 
     # User-Agent 랜덤 선택 (봇 차단 방지)
     user_agent = random.choice(Config.USER_AGENTS)
@@ -84,6 +91,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
     # 배치 처리 상태
     posts_since_commit = 0
     last_commit_time = time_module.time()
+    total_processed = 0  # 미니테스트용 카운터
 
     # 페이지별 크롤링
     for page_num in range(1, Config.CRAWL_CONFIG["max_pages"] + 1):
@@ -100,6 +108,24 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
         page_total = len(post_urls)
 
         for url in post_urls:
+            # 미니테스트 limit 체크
+            if limit and total_processed >= limit:
+                logger.info(f"🎯 Limit reached: {limit} posts processed")
+                stats["early_stopped"] = True
+                
+                # 마지막 커밋 (배치 모드)
+                if batch_enabled and posts_since_commit > 0:
+                    commit_start = time_module.time()
+                    db.flush()
+                    commit_time = time_module.time() - commit_start
+                    
+                    stats["commits"] += 1
+                    logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
+                
+                return stats
+            
+            total_processed += 1
+            
             # 게시글 파싱 (Config의 max_retries 사용)
             try:
                 post_data = scraper.parse_post(url, Config.CRAWL_CONFIG["max_retries"])
@@ -141,9 +167,12 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
                     
                     # 마지막 커밋 (배치 모드)
                     if batch_enabled and posts_since_commit > 0:
+                        commit_start = time_module.time()
                         db.flush()
+                        commit_time = time_module.time() - commit_start
+                        
                         stats["commits"] += 1
-                        logger.info(f"   💾 Final commit: {posts_since_commit} posts")
+                        logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
                     
                     return stats
             else:
@@ -152,11 +181,36 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
                 consecutive_duplicates = 0  # 리셋
                 posts_since_commit += 1
                 
-                image_count = len(post_data["images"])
-                logger.info(f"   ✅ New: {post_data['title'][:40]}... ({image_count} images)")
+                # 미디어 타입별 개수 확인 (DB에서 조회)
+                media_count = len(post_data["images"])
+                
+                # 저장 후 실제 미디어 타입 확인
+                try:
+                    # 방금 저장된 게시글의 이미지 정보 조회
+                    saved_images = db.session.query(Image).filter_by(post_id=post_id).all()
+                    
+                    # 타입별로 분류
+                    webp_count = sum(1 for img in saved_images if img.optimized_format == 'webp')
+                    webm_count = sum(1 for img in saved_images if img.optimized_format == 'webm')
+                    gif_count = sum(1 for img in saved_images if img.optimized_format == 'gif')
+                    
+                    # 로그 메시지 구성
+                    media_parts = []
+                    if webp_count > 0:
+                        media_parts.append(f"{webp_count} images")
+                    if webm_count > 0:
+                        media_parts.append(f"{webm_count} videos/GIFs")
+                    if gif_count > 0:
+                        media_parts.append(f"{gif_count} static GIFs")
+                    
+                    media_str = ", ".join(media_parts) if media_parts else f"{media_count} media"
+                    logger.info(f"   ✅ New: {post_data['title'][:40]}... ({media_str})")
+                except:
+                    # fallback
+                    logger.info(f"   ✅ New: {post_data['title'][:40]}... ({media_count} media)")
                 
                 # 이미지는 save_post_with_html에서 자동으로 저장됨
-                stats["images_saved"] += image_count
+                stats["images_saved"] += media_count
                 
                 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                 # 배치 커밋 로직
@@ -167,9 +221,13 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
                     
                     # 1. 청크 크기 도달 또는 2. 시간 초과
                     if posts_since_commit >= chunk_size or time_elapsed >= max_time_seconds:
+                        # SQLite 커밋 시간 측정
+                        commit_start = time_module.time()
                         db.flush()
+                        commit_time = time_module.time() - commit_start
+                        
                         stats["commits"] += 1
-                        logger.info(f"   💾 Batch commit: {posts_since_commit} posts ({time_elapsed:.1f}s)")
+                        logger.info(f"   💾 Batch commit: {posts_since_commit} posts ({time_elapsed:.1f}s total, {commit_time*1000:.0f}ms DB)")
                         posts_since_commit = 0
                         last_commit_time = current_time
 
@@ -198,14 +256,17 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class):
 
     # 최종 커밋 (배치 모드에서 남은 데이터)
     if batch_enabled and posts_since_commit > 0:
+        commit_start = time_module.time()
         db.flush()
+        commit_time = time_module.time() - commit_start
+        
         stats["commits"] += 1
-        logger.info(f"💾 Final commit: {posts_since_commit} posts")
+        logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
 
     return stats
 
 
-def run_crawler(site_filter=None):
+def run_crawler(site_filter=None, limit=None):
     """
     크롤러 실행 메인 로직 (다중 사이트 지원)
 
@@ -214,8 +275,9 @@ def run_crawler(site_filter=None):
     
     Args:
         site_filter: 특정 사이트만 크롤링 (예: 'ruliweb', 'fmkorea')
+        limit: 크롤링할 최대 게시글 수 (미니테스트용, None이면 제한 없음)
     """
-    logger.info(f"Crawler started{f' (site: {site_filter})' if site_filter else ''}")
+    logger.info(f"Crawler started{f' (site: {site_filter})' if site_filter else ''}{f' (limit: {limit})' if limit else ''}")
 
     try:
         from config import Config
@@ -251,7 +313,7 @@ def run_crawler(site_filter=None):
                 continue
 
             total_stats["sites"] += 1
-            stats = crawl_site(site_key, site_config, db, Scraper)
+            stats = crawl_site(site_key, site_config, db, Scraper, limit=limit)
 
             total_stats["new_posts"] += stats["new_posts"]
             total_stats["duplicates"] += stats["duplicates"]
@@ -281,15 +343,16 @@ def main():
     """메인 함수"""
     parser = argparse.ArgumentParser(description='Community humor crawler')
     parser.add_argument('--site', type=str, help='Crawl specific site only (e.g., ruliweb, fmkorea)')
+    parser.add_argument('--limit', type=int, help='Limit number of posts to crawl (for testing, e.g., 3)')
     args = parser.parse_args()
     
     if args.site:
         # 단일 사이트 크롤링
         logger.info(f"Crawling single site: {args.site}")
-        run_crawler(site_filter=args.site)
+        run_crawler(site_filter=args.site, limit=args.limit)
     else:
         # 모든 사이트 크롤링
-        run_crawler()
+        run_crawler(limit=args.limit)
 
 
 if __name__ == "__main__":
