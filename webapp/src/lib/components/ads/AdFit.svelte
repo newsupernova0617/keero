@@ -1,65 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
 
-	interface Props {
-		unit: string // 애드핏 유닛 ID
-		width?: number
-		height?: number
-		className?: string
-	}
+	let { unit, width = 728, height = 90 }: { unit: string; width?: number; height?: number } = $props()
 
-	let { unit, width = 320, height = 100, className = '' }: Props = $props()
-
-	let adContainer: HTMLDivElement
+	let adContainer: HTMLElement
 
 	onMount(() => {
-		// 카카오 애드핏 스크립트 로드
-		if (typeof window !== 'undefined' && !(window as any).kakaoPixel) {
-			const script = document.createElement('script')
-			script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js'
-			script.async = true
-			document.head.appendChild(script)
-		}
-
-		// 광고 초기화
 		try {
-			if (adContainer) {
-				const ins = document.createElement('ins')
-				ins.className = 'kakao_ad_area'
-				ins.style.display = 'none'
-				ins.setAttribute('data-ad-unit', unit)
-				ins.setAttribute('data-ad-width', width.toString())
-				ins.setAttribute('data-ad-height', height.toString())
-				adContainer.appendChild(ins)
+			// 카카오 애드핏 스크립트 로드
+			if (typeof window !== 'undefined' && !(window as any).adfit) {
+				const script = document.createElement('script')
+				script.src = 'https://t1.daumcdn.net/kas/static/ba.min.js'
+				script.async = true
+				document.head.appendChild(script)
 
-				const adScript = document.createElement('script')
-				adScript.type = 'text/javascript'
-				adScript.src = '//t1.daumcdn.net/kas/static/ba.min.js'
-				adScript.async = true
-				adContainer.appendChild(adScript)
+				script.onload = () => {
+					initAd()
+				}
+			} else {
+				initAd()
 			}
 		} catch (e) {
 			console.error('AdFit error:', e)
 		}
 	})
+
+	function initAd() {
+		// 광고 초기화는 스크립트가 자동으로 처리
+	}
 </script>
 
-<div class="ad-wrapper {className}">
-	<div bind:this={adContainer} class="adfit-container">
-		<!-- 카카오 애드핏 광고 영역 -->
-	</div>
-</div>
-
-<style>
-	.ad-wrapper {
-		margin: 1rem 0;
-		text-align: center;
-		display: flex;
-		justify-content: center;
-	}
-
-	.adfit-container {
-		width: 100%;
-		max-width: 320px;
-	}
-</style>
+<ins
+	bind:this={adContainer}
+	class="kakao_ad_area"
+	style="display:none; width:100%; max-width:{width}px;"
+	data-ad-unit={unit}
+	data-ad-width={width}
+	data-ad-height={height}
+></ins>

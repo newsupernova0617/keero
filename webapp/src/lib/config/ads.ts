@@ -2,7 +2,7 @@
 export const AD_CONFIG = {
     // Google AdSense
     adsense: {
-        enabled: false, // AdSense 승인 후 true로 변경
+        enabled: true, // 기본 활성화 (승인 대기 중에도 표시)
         client: 'ca-pub-XXXXXXXXXXXXXXXX', // 실제 AdSense ID로 변경
         slots: {
             header: '1234567890', // 헤더 배너
@@ -15,7 +15,7 @@ export const AD_CONFIG = {
 
     // 네이버 애드포스트
     adpost: {
-        enabled: true, // 기본 활성화
+        enabled: false, // 웹사이트 불가
         units: {
             header: 'UNIT-XXXXXXXX-1', // 헤더 배너
             footer: 'UNIT-XXXXXXXX-2', // 푸터 배너
@@ -28,8 +28,12 @@ export const AD_CONFIG = {
     adfit: {
         enabled: false, // AdSense 미승인 시 true로 변경
         units: {
-            mobile: 'DAN-XXXXXXXXXXXXXXXX', // 모바일 배너
-            sidebar: 'DAN-YYYYYYYYYYYYYYYY' // 사이드바
+            header: 'DAN-XXXXXXXXXXXXXXXX', // 헤더 배너
+            footer: 'DAN-YYYYYYYYYYYYYYYY', // 푸터 배너
+            inFeed: 'DAN-ZZZZZZZZZZZZZZZZ', // 피드 내
+            inArticle: 'DAN-AAAAAAAAAAAAAAAA', // 본문 중간
+            mobile: 'DAN-BBBBBBBBBBBBBBBB', // 모바일 배너
+            sidebar: 'DAN-CCCCCCCCCCCCCCCC' // 사이드바
         }
     }
 }

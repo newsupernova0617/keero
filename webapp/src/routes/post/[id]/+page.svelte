@@ -10,7 +10,7 @@
 	import { Separator } from '$lib/components/ui/separator'
 	import { Textarea } from '$lib/components/ui/textarea'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
-	import AdPost from '$lib/components/ads/AdPost.svelte'
+import AdFit from '$lib/components/ads/AdFit.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
 	import Comment from '$lib/components/Comment.svelte'
 	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare } from '@lucide/svelte'
@@ -280,14 +280,24 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<!-- 댓글 위 광고 -->
-	{#if AD_CONFIG.adsense.enabled}
-		<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="rectangle" />
-	{:else if AD_CONFIG.adpost.enabled}
-		<div class="flex justify-center">
-			<AdPost unitId={AD_CONFIG.adpost.units.inArticle} width={336} height={280} />
+	<!-- 광고 영역 -->
+	<div class="py-4">
+		<div class="flex flex-col items-center gap-3">
+			<!-- 광고 라벨 -->
+			<div class="flex items-center gap-2">
+				<div class="h-px w-12 bg-border"></div>
+				<span class="text-xs font-medium text-muted-foreground">Advertisement</span>
+				<div class="h-px w-12 bg-border"></div>
+			</div>
+			
+			<!-- 광고 -->
+			{#if AD_CONFIG.adsense.enabled}
+				<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="horizontal" />
+			{:else if AD_CONFIG.adfit.enabled}
+				<AdFit unit={AD_CONFIG.adfit.units.inArticle} width={728} height={90} />
+			{/if}
 		</div>
-	{/if}
+	</div>
 
 	<!-- 댓글 섹션 -->
 	<Card.Root id="comments">
