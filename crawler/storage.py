@@ -273,7 +273,14 @@ class DatabaseManager:
             connection.execute(text("PRAGMA busy_timeout=5000"))
             connection.commit()
 
-        Base.metadata.create_all(engine)
+
+        # 테이블 생성 (이미 존재하면 무시)
+        try:
+            Base.metadata.create_all(engine, checkfirst=True)
+        except Exception as e:
+            # 테이블이 이미 존재하는 경우 무시 (동시성 문제)
+            if "already exists" not in str(e):
+                raise
         
         # FTS5 가상 테이블 생성 (검색용)
         with engine.connect() as connection:
