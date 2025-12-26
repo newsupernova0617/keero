@@ -1,7 +1,5 @@
-import { PUBLIC_BASE_URL } from '$env/static/public'
-
-export async function GET() {
-    const baseUrl = PUBLIC_BASE_URL || 'http://localhost:5173'
+export async function GET({ url }) {
+    const baseUrl = url.origin
 
     const robotsTxt = `User-agent: *
 Allow: /

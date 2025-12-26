@@ -1,9 +1,8 @@
 import { db } from '$lib/server/db'
 import { posts } from '$lib/server/schema'
 import { desc, isNull } from 'drizzle-orm'
-import { PUBLIC_BASE_URL } from '$env/static/public'
 
-export async function GET() {
+export async function GET({ url }) {
     try {
         // 최근 1000개 게시글 조회
         const allPosts = await db
@@ -16,7 +15,7 @@ export async function GET() {
             .orderBy(desc(posts.id))
             .limit(1000)
 
-        const baseUrl = PUBLIC_BASE_URL || 'http://localhost:5173'
+        const baseUrl = url.origin
 
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
