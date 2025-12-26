@@ -32,5 +32,5 @@ COPY . .
 # 데이터 디렉토리 생성
 RUN mkdir -p /data
 
-# 크롤러 실행
-CMD ["python", "main.py"]
+# 스케줄러 실행 (계속 실행되면서 주기적으로 크롤링)
+CMD ["python", "scheduler.py"]
