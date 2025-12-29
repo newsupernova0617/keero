@@ -9,7 +9,7 @@ selector가 올바르게 작동하는지 확인합니다.
 import sys
 import requests
 from bs4 import BeautifulSoup
-from config import Config
+from core.config import Config
 
 def test_site_selectors(site_key):
     """특정 사이트의 selector 테스트"""

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from logging_db import LogQuery, SQLiteHandler, cleanup_old_logs, setup_logging
+from core.logging_db import LogQuery, SQLiteHandler, cleanup_old_logs, setup_logging
 
 
 class TestSQLiteHandler:

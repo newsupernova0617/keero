@@ -13,8 +13,8 @@ from pathlib import Path
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import Config
-from storage import DatabaseManager
+from core.config import Config
+from core.storage import DatabaseManager
 from sqlalchemy import create_engine, text
 
 def clean_placeholder_images():

@@ -11,10 +11,10 @@ from unittest.mock import patch
 import pytest
 import responses
 
-from config import Config
-from main import crawl_site, run_crawler
-from scraper import Scraper
-from storage import DatabaseManager
+from core.config import Config
+from core.main import crawl_site, run_crawler
+from core.scraper import Scraper
+from core.storage import DatabaseManager
 
 
 class TestCrawlSite:

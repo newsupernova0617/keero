@@ -13,8 +13,8 @@ import pytest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from scraper import Scraper  # noqa: E402
-from storage import DatabaseManager  # noqa: E402
+from core.scraper import Scraper  # noqa: E402
+from core.storage import DatabaseManager  # noqa: E402
 
 
 @pytest.fixture

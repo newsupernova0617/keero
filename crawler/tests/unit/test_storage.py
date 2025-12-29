@@ -4,7 +4,7 @@ storage.py 모듈 테스트
 데이터베이스 모델, 해시 함수, DatabaseManager 클래스를 테스트합니다.
 """
 
-from storage import Image, Post, generate_content_hash, get_image_hash, normalize_text
+from core.storage import Image, Post, generate_content_hash, get_image_hash, normalize_text
 
 
 class TestTextNormalization:

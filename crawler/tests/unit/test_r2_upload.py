@@ -3,9 +3,9 @@ R2 이미지 업로드 테스트 스크립트
 """
 import sys
 from pathlib import Path
-from storage import DatabaseManager
+from core.storage import DatabaseManager
 
-from config import Config
+from core.config import Config
 
 # DB 초기화
 db = DatabaseManager(db_path=Config.DATABASE["path"])

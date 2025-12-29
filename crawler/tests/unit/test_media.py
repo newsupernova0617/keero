@@ -8,7 +8,7 @@ GIF/동영상 최적화 테스트 스크립트
 
 import os
 from dotenv import load_dotenv
-from storage import DatabaseManager
+from core.storage import DatabaseManager
 
 # 환경 변수 로드
 load_dotenv()

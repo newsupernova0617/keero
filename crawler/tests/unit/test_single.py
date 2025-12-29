@@ -1,8 +1,8 @@
 
 import asyncio
-from scraper import Scraper
-from storage import DatabaseManager
-from config import Config
+from core.scraper import Scraper
+from core.storage import DatabaseManager
+from core.config import Config
 
 # 특정 URL 테스트용 스크립트
 TARGET_URL = "https://www.fmkorea.com/best/9310073329"

@@ -2,7 +2,7 @@
 HTML 처리 함수 테스트
 """
 import pytest
-from storage import clean_html, replace_image_urls_in_html
+from core.storage import clean_html, replace_image_urls_in_html
 
 
 def test_clean_html_removes_dangerous_tags():

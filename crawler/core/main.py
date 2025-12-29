@@ -18,10 +18,10 @@ import time
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
 
-from config import Config
-from logging_db import setup_logging
-from scraper import ParseError
-from storage import Image
+from core.config import Config
+from core.logging_db import setup_logging
+from core.scraper import ParseError
+from core.storage import Image
 
 # 로깅 설정 (SQLite + 콘솔)
 logger = setup_logging(

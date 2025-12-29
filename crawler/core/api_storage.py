@@ -10,7 +10,7 @@ API 모드 Storage Wrapper
 import logging
 from typing import Dict, List, Optional
 
-from api_client import CrawlerAPIClient
+from core.api_client import CrawlerAPIClient
 
 logger = logging.getLogger(__name__)
 

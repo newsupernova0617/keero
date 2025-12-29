@@ -8,7 +8,7 @@ import pytest
 import responses
 from bs4 import BeautifulSoup
 
-from scraper import FetchError
+from core.scraper import FetchError
 
 
 class TestFetchPage:

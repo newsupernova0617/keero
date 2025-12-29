@@ -18,7 +18,7 @@ import asyncio
 import sys
 from datetime import datetime
 
-from config import Config
+from core.config import Config
 from crawler import Crawler
 from db import Database
 from logger import CrawlerLogger

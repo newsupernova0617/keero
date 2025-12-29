@@ -7,9 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import Config
-from scraper import Scraper
-from storage import DatabaseManager
+from core.config import Config
+from core.scraper import Scraper
+from core.storage import DatabaseManager
 from sqlalchemy import create_engine, text
 
 def recrawl_post(post_id: int):
