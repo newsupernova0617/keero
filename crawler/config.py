@@ -225,3 +225,12 @@ class Config:
         "db_path": os.getenv("LOGS_DB_PATH", "../data/logs.db"),
         "retention_days": int(os.getenv("LOGS_RETENTION_DAYS", "30")),
     }
+
+    # API 모드 설정 (Railway 배포용)
+    API_MODE = {
+        "enabled": os.getenv("USE_API", "false").lower() == "true",
+        "api_url": os.getenv("API_URL", "http://localhost:5173"),
+        "api_key": os.getenv("CRAWLER_API_KEY", ""),
+        "timeout": int(os.getenv("API_TIMEOUT", "60")),
+    }
+

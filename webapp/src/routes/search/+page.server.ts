@@ -1,7 +1,18 @@
 import { db } from '$lib/server/db'
-import { posts, images } from '$lib/server/schema'
-import { sql } from 'drizzle-orm'
+import { images } from '$lib/server/schema'
+import { sql, eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
+
+type SearchResult = {
+    id: number
+    site_name: string
+    title: string
+    content: string
+    source_url: string
+    created_at: string
+    crawled_at: string
+    image_count: number
+}
 
 export const load: PageServerLoad = async ({ url }) => {
     const query = url.searchParams.get('q')?.trim()
@@ -14,8 +25,8 @@ export const load: PageServerLoad = async ({ url }) => {
     }
 
     try {
-        // FTS5 검색 쿼리
-        const searchResults = await db.all<any>(sql`
+        // FTS5 전문 검색 (훨씬 빠르고 정확함)
+        const searchResults = await db.all<SearchResult>(sql`
 			SELECT 
 				posts.id,
 				posts.site_name,
@@ -25,23 +36,21 @@ export const load: PageServerLoad = async ({ url }) => {
 				posts.created_at,
 				posts.crawled_at,
 				(SELECT COUNT(*) FROM images WHERE images.post_id = posts.id) as image_count
-			FROM posts
+			FROM posts_fts
+			JOIN posts ON posts_fts.rowid = posts.id
 			WHERE posts.related_post_id IS NULL
-			AND (
-				posts.title LIKE ${'%' + query + '%'}
-				OR posts.content LIKE ${'%' + query + '%'}
-			)
+			AND posts_fts MATCH ${query}
 			ORDER BY posts.id DESC
 			LIMIT 50
 		`)
 
-        // 각 게시글의 첫 번째 이미지 가져오기
+        // 각 게시글의 첫 번째 이미지 가져오기 (Drizzle ORM 사용)
         const resultsWithImages = await Promise.all(
-            searchResults.map(async (post: any) => {
+            searchResults.map(async (post) => {
                 const firstImage = await db
                     .select()
                     .from(images)
-                    .where(sql`${images.post_id} = ${post.id}`)
+                    .where(eq(images.post_id, post.id))
                     .orderBy(images.order_index)
                     .limit(1)
 

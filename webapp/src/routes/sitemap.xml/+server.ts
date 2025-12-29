@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db'
 import { posts } from '$lib/server/schema'
 import { desc, isNull } from 'drizzle-orm'
+import { env } from '$env/dynamic/public'
 
 export async function GET({ url }) {
     try {
@@ -15,7 +16,8 @@ export async function GET({ url }) {
             .orderBy(desc(posts.id))
             .limit(1000)
 
-        const baseUrl = url.origin
+        // PUBLIC_BASE_URL 우선 사용 (Railway 배포 대비)
+        const baseUrl = env.PUBLIC_BASE_URL || url.origin
 
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

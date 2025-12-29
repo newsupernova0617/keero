@@ -10,6 +10,7 @@ SQLite 로깅 모듈
 import json
 import logging
 import sqlite3
+import time
 import traceback
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -87,6 +88,78 @@ class SQLiteHandler(logging.Handler):
                 conn.commit()
         except Exception:
             self.handleError(record)
+
+
+class APILogHandler(logging.Handler):
+    """API로 로그를 전송하는 핸들러 (배치 처리)"""
+
+    def __init__(self, api_client, batch_size: int = 10, flush_interval: int = 5):
+        """
+        Args:
+            api_client: CrawlerAPIClient 인스턴스
+            batch_size: 배치 크기 (이 개수만큼 모이면 전송)
+            flush_interval: 강제 전송 간격 (초)
+        """
+        super().__init__()
+        self.api_client = api_client
+        self.batch_size = batch_size
+        self.flush_interval = flush_interval
+        self.buffer: List[Dict] = []
+        self.last_flush_time = time.time()
+
+    def emit(self, record: logging.LogRecord):
+        """로그를 버퍼에 추가하고 조건에 따라 전송"""
+        try:
+            # 예외 정보 포맷팅
+            exc_text = None
+            if record.exc_info:
+                exc_text = "".join(traceback.format_exception(*record.exc_info))
+
+            # extra 데이터 (있으면)
+            extra_data = None
+            if hasattr(record, "extra"):
+                extra_data = json.dumps(record.extra)
+
+            # 로그 데이터 구성
+            log_data = {
+                "timestamp": datetime.fromtimestamp(record.created).isoformat(),
+                "level": record.levelname,
+                "level_no": record.levelno,
+                "logger": record.name,
+                "message": record.getMessage(),
+                "function": record.funcName,
+                "line_number": record.lineno,
+                "exception": exc_text,
+                "extra_data": extra_data
+            }
+
+            self.buffer.append(log_data)
+
+            # 버퍼가 가득 차거나 시간이 지나면 전송
+            current_time = time.time()
+            if (len(self.buffer) >= self.batch_size or 
+                current_time - self.last_flush_time >= self.flush_interval):
+                self.flush()
+
+        except Exception:
+            self.handleError(record)
+
+    def flush(self):
+        """버퍼의 로그를 API로 전송"""
+        if self.buffer:
+            try:
+                self.api_client.save_logs(self.buffer)
+                self.buffer.clear()
+                self.last_flush_time = time.time()
+            except Exception as e:
+                # 로그 전송 실패는 무시 (무한 루프 방지)
+                print(f"Failed to send logs via API: {e}")
+
+    def close(self):
+        """핸들러 종료 시 남은 로그 전송"""
+        self.flush()
+        super().close()
+
 
 
 class LogQuery:

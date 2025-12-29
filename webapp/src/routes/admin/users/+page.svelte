@@ -48,8 +48,8 @@
 							</span>
 						</td>
 						<td class="px-6 py-4 text-sm text-gray-600">
-							{new Date(user.created_at).toLocaleDateString('ko-KR')}
-						</td>
+						{user.created_at ? new Date(user.created_at).toLocaleDateString('ko-KR') : '-'}
+					</td>
 					</tr>
 				{/each}
 			</tbody>

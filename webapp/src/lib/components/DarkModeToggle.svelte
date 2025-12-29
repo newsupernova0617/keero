@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
-	import { Switch } from '$lib/components/ui/switch'
 	import { Moon, Sun } from '@lucide/svelte'
 
 	let isDark = $state(false)

@@ -128,40 +128,47 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
             
             # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             # URL 중복 체크 (파싱 전에 먼저 확인)
+            # API 모드에서는 스킵 (SvelteKit에서 처리)
             # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             from storage import Post
-            existing = db.session.query(Post).filter_by(source_url=url).first()
             
-            if existing:
-                # 중복 게시글 → 파싱하지 않고 스킵
-                stats["duplicates"] += 1
-                page_duplicates += 1
-                consecutive_duplicates += 1
-                logger.debug(f"   ⏭️  Duplicate (URL): {url}")
+            # API 모드 체크
+            api_mode = hasattr(db, 'api_client')
+            
+            if not api_mode:
+                # 로컬 DB 모드: 중복 체크
+                existing = db.session.query(Post).filter_by(source_url=url).first()
                 
-                # Early Stop: 연속 중복 체크
-                if (
-                    early_stop_config["enabled"]
-                    and consecutive_duplicates >= early_stop_config["consecutive_duplicates"]
-                ):
-                    logger.info(
-                        f"⏹️  Early Stop: {consecutive_duplicates} consecutive duplicates found"
-                    )
-                    stats["early_stopped"] = True
+                if existing:
+                    # 중복 게시글 → 파싱하지 않고 스킵
+                    stats["duplicates"] += 1
+                    page_duplicates += 1
+                    consecutive_duplicates += 1
+                    logger.debug(f"   ⏭️  Duplicate (URL): {url}")
                     
-                    # 마지막 커밋 (배치 모드)
-                    if batch_enabled and posts_since_commit > 0:
-                        commit_start = time_module.time()
-                        db.flush()
-                        commit_time = time_module.time() - commit_start
+                    # Early Stop: 연속 중복 체크
+                    if (
+                        early_stop_config["enabled"]
+                        and consecutive_duplicates >= early_stop_config["consecutive_duplicates"]
+                    ):
+                        logger.info(
+                            f"⏹️  Early Stop: {consecutive_duplicates} consecutive duplicates found"
+                        )
+                        stats["early_stopped"] = True
                         
-                        stats["commits"] += 1
-                        logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
+                        # 마지막 커밋 (배치 모드)
+                        if batch_enabled and posts_since_commit > 0:
+                            commit_start = time_module.time()
+                            db.flush()
+                            commit_time = time_module.time() - commit_start
+                            
+                            stats["commits"] += 1
+                            logger.info(f"   💾 Final commit: {posts_since_commit} posts ({commit_time*1000:.0f}ms DB)")
+                        
+                        return stats
                     
-                    return stats
-                
-                # 다음 게시글로 (파싱 안 함)
-                continue
+                    # 다음 게시글로 (파싱 안 함)
+                    continue
             
             # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             # 새 게시글 → 파싱 + 저장
@@ -323,17 +330,51 @@ def run_crawler(site_filter=None, limit=None):
     try:
         from config import Config
         from scraper import Scraper
-        from storage import DatabaseManager
 
         # 배치 커밋 설정 확인
         batch_enabled = Config.CRAWL_CONFIG["batch_commit"].get("enabled", False)
         
-        # Storage 초기화 (R2 설정 + 배치 모드)
-        db = DatabaseManager(
-            db_path=Config.DATABASE["path"],
-            r2_config=Config.R2_CONFIG,
-            auto_commit=not batch_enabled,  # 배치 모드면 auto_commit=False
-        )
+        # API 모드 확인
+        api_mode = Config.API_MODE.get("enabled", False)
+        
+        if api_mode:
+            # API 모드: APIStorageManager 사용
+            from api_storage import APIStorageManager
+            from logging_db import APILogHandler
+            
+            logger.info("🌐 API Mode enabled")
+            logger.info(f"   API URL: {Config.API_MODE['api_url']}")
+            
+            # API Storage 초기화
+            db = APIStorageManager(
+                api_url=Config.API_MODE["api_url"],
+                api_key=Config.API_MODE["api_key"],
+                timeout=Config.API_MODE["timeout"]
+            )
+            
+            # 로그 핸들러를 API 모드로 전환
+            root_logger = logging.getLogger()
+            api_log_handler = APILogHandler(
+                api_client=db.api_client,
+                batch_size=10,
+                flush_interval=5
+            )
+            api_log_handler.setLevel(logging.INFO)
+            root_logger.addHandler(api_log_handler)
+            logger.info("📝 API Log Handler added")
+            
+        else:
+            # 로컬 모드: DatabaseManager 사용
+            from storage import DatabaseManager
+            
+            logger.info("💾 Local DB Mode enabled")
+            
+            # Storage 초기화 (R2 설정 + 배치 모드)
+            db = DatabaseManager(
+                db_path=Config.DATABASE["path"],
+                r2_config=Config.R2_CONFIG,
+                auto_commit=not batch_enabled,  # 배치 모드면 auto_commit=False
+            )
 
         total_stats = {
             "sites": 0,
@@ -375,6 +416,13 @@ def run_crawler(site_filter=None, limit=None):
             f"{total_stats['failed']} failed, "
             f"{total_stats['images_saved']} images saved"
         )
+        
+        # API 모드: 남은 로그 전송
+        if api_mode:
+            for handler in logging.getLogger().handlers:
+                if isinstance(handler, APILogHandler):
+                    handler.close()
+                    
     except Exception as e:
         logger.error(f"Crawler failed: {e}")
         raise
