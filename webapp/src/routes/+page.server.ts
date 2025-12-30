@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types'
 export const load: PageServerLoad = async ({ url }) => {
     // 페이지네이션 파라미터
     const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = 20
+    const limit = 100
     const offset = (page - 1) * limit
 
     // 전체 게시글 수 조회
