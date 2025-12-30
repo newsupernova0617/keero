@@ -26,7 +26,7 @@ export const AD_CONFIG = {
 
     // 카카오 애드핏
     adfit: {
-        enabled: false, // AdSense 미승인 시 true로 변경
+        enabled: true, // AdSense 미승인 시 true로 변경
         units: {
             header: 'DAN-XXXXXXXXXXXXXXXX', // 헤더 배너
             footer: 'DAN-YYYYYYYYYYYYYYYY', // 푸터 배너
