@@ -17,7 +17,38 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	import { onMount } from 'svelte'
 
 	let { data }: { data: PageData } = $props()
-	let { post, images, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
+	let { post, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
+	
+	// 중복 제거 및 썸네일 필터링된 이미지 목록
+	let images = $derived.by(() => {
+		const rawImages = data.images || []
+		const seen = new Set<string>()
+		
+		// 1차 필터: 중복 URL 제거
+		const uniqueImages = rawImages.filter((img) => {
+			const url = img.r2_url || ''
+			if (seen.has(url)) return false
+			seen.add(url)
+			return true
+		})
+		
+		// 비디오가 있는지 확인
+		const hasVideo = uniqueImages.some(img => {
+			const url = img.r2_url?.toLowerCase() || ''
+			return url.endsWith('.mp4') || url.endsWith('.webm')
+		})
+		
+		// 비디오가 있으면 jpg/png 이미지 제거 (펨코 썸네일)
+		if (hasVideo) {
+			return uniqueImages.filter(img => {
+				const url = img.r2_url?.toLowerCase() || ''
+				// 비디오만 남기기
+				return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif')
+			})
+		}
+		
+		return uniqueImages
+	})
 	
 	// 비디오에 controls 속성 추가
 	onMount(() => {
@@ -28,15 +59,18 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 		})
 	})
 	
-	// HTML sanitize
-	let sanitizedHtml = $derived(
-		post.content_html 
-			? DOMPurify.sanitize(post.content_html, {
-				ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'img', 'video', 'source', 'div', 'span', 'blockquote', 'ul', 'ol', 'li', 'table', 'tbody', 'tr', 'td'],
-				ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
-			})
-			: ''
-	)
+	// HTML sanitize (placeholder 제거하고 텍스트만 표시)
+	let sanitizedHtml = $derived.by(() => {
+		if (!post.content_html) return ''
+		
+		// HTML sanitize - placeholder 태그 제거하고 텍스트만 남김
+		let html = DOMPurify.sanitize(post.content_html, {
+			ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'div', 'span', 'blockquote', 'ul', 'ol', 'li', 'table', 'tbody', 'tr', 'td'],
+			ALLOWED_ATTR: ['href', 'alt', 'title', 'class']
+		})
+		
+		return html
+	})
 
 	let commentContent = $state('')
 	let replyingTo = $state<number | null>(null)
@@ -211,36 +245,51 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 
 		<!-- 본문 -->
 		<Card.Content class="p-6">
+			<!-- HTML 본문 (이미지 포함) -->
 			{#if post.content_html}
 				<div class="prose prose-gray max-w-none dark:prose-invert">
 					{@html sanitizedHtml}
 				</div>
-			{:else}
-				{#if post.content}
-					<div class="prose prose-gray max-w-none dark:prose-invert">
-						<p class="whitespace-pre-wrap">{post.content}</p>
-					</div>
-				{/if}
-
-				{#if images.length > 0}
-					<div class="mt-6 space-y-4">
-						{#each images as image, index}
-							<div class="overflow-hidden rounded-lg border">
-								<img
-									src={image.r2_url}
-									alt="게시글 이미지 {index + 1}"
-									class="w-full"
-									loading="lazy"
-								/>
-								{#if image.media_type === 'gif'}
-									<div class="bg-muted px-3 py-2 text-xs text-muted-foreground">
-										GIF {image.duration_seconds ? `(${image.duration_seconds}초)` : ''}
-									</div>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
+			{:else if post.content}
+				<div class="prose prose-gray max-w-none dark:prose-invert">
+					<p class="whitespace-pre-wrap">{post.content}</p>
+				</div>
+			{/if}
+			
+			<!-- 미디어 갤러리 (항상 표시) -->
+			{#if images.length > 0}
+				<div class="mt-6 space-y-4">
+					{#each images as image, idx}
+						{@const url = image.r2_url?.toLowerCase() || ''}
+						{@const isVideo = url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov')}
+						{@const isGif = url.endsWith('.gif')}
+						
+						{#if isVideo}
+							<video
+								src={image.r2_url}
+								controls
+								class="w-full max-w-2xl rounded-lg"
+								preload="metadata"
+							>
+								<track kind="captions" />
+							</video>
+						{:else if isGif}
+							<img
+								src={image.r2_url}
+								alt="움짤 {idx + 1}"
+								class="w-full max-w-2xl rounded-lg"
+								loading="lazy"
+							/>
+						{:else}
+							<img
+								src={image.r2_url}
+								alt="이미지 {idx + 1}"
+								class="w-full max-w-2xl rounded-lg"
+								loading="lazy"
+							/>
+						{/if}
+					{/each}
+				</div>
 			{/if}
 		</Card.Content>
 

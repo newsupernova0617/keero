@@ -50,7 +50,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
         dict: 크롤링 결과 통계
     """
     import time as time_module
-    from config import Config
+    from core.config import Config
 
     logger.info(f"=== Crawling {site_key} ===" + (f" (limit: {limit} posts)" if limit else ""))
 
@@ -130,7 +130,7 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
             # URL 중복 체크 (파싱 전에 먼저 확인)
             # API 모드에서는 스킵 (SvelteKit에서 처리)
             # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            from storage import Post
+            from core.storage import Post
             
             # API 모드 체크
             api_mode = hasattr(db, 'api_client')
@@ -328,8 +328,8 @@ def run_crawler(site_filter=None, limit=None):
     logger.info(f"Crawler started{f' (site: {site_filter})' if site_filter else ''}{f' (limit: {limit})' if limit else ''}")
 
     try:
-        from config import Config
-        from scraper import Scraper
+        from core.config import Config
+        from core.scraper import Scraper
 
         # 배치 커밋 설정 확인
         batch_enabled = Config.CRAWL_CONFIG["batch_commit"].get("enabled", False)
@@ -339,8 +339,8 @@ def run_crawler(site_filter=None, limit=None):
         
         if api_mode:
             # API 모드: APIStorageManager 사용
-            from api_storage import APIStorageManager
-            from logging_db import APILogHandler
+            from core.api_storage import APIStorageManager
+            from core.logging_db import APILogHandler
             
             logger.info("🌐 API Mode enabled")
             logger.info(f"   API URL: {Config.API_MODE['api_url']}")
@@ -365,7 +365,7 @@ def run_crawler(site_filter=None, limit=None):
             
         else:
             # 로컬 모드: DatabaseManager 사용
-            from storage import DatabaseManager
+            from core.storage import DatabaseManager
             
             logger.info("💾 Local DB Mode enabled")
             

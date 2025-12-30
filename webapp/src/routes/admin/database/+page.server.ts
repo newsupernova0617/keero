@@ -75,6 +75,43 @@ export const actions: Actions = {
 			throw error(400, '게시글 ID가 필요합니다')
 		}
 
+		// FOREIGN KEY constraint 해결: 연관 데이터 먼저 삭제
+		// 1. 댓글 삭제
+		await db.delete(comments).where(sql`${comments.post_id} = ${postId}`)
+		
+		// 2. 이미지 삭제 (있다면)
+		try {
+			const { images } = await import('$lib/server/schema')
+			await db.delete(images).where(sql`${images.post_id} = ${postId}`)
+		} catch {
+			// images 테이블이 없으면 무시
+		}
+		
+		// 3. 좋아요 삭제 (있다면)
+		try {
+			const { likes } = await import('$lib/server/schema')
+			await db.delete(likes).where(sql`${likes.post_id} = ${postId}`)
+		} catch {
+			// likes 테이블이 없으면 무시
+		}
+		
+		// 4. 북마크 삭제 (있다면)
+		try {
+			const { bookmarks } = await import('$lib/server/schema')
+			await db.delete(bookmarks).where(sql`${bookmarks.post_id} = ${postId}`)
+		} catch {
+			// bookmarks 테이블이 없으면 무시
+		}
+		
+		// 5. 신고 삭제 (있다면)
+		try {
+			const { reports } = await import('$lib/server/schema')
+			await db.delete(reports).where(sql`${reports.post_id} = ${postId}`)
+		} catch {
+			// reports 테이블이 없으면 무시
+		}
+		
+		// 6. 마지막으로 게시글 삭제
 		await db.delete(posts).where(sql`${posts.id} = ${postId}`)
 
 		return { success: true, message: '게시글이 삭제되었습니다' }
