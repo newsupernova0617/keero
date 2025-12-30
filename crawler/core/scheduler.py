@@ -52,7 +52,7 @@ def main():
     
     # 6개 사이트를 2그룹으로 분할
     group1 = ["ruliweb", "todayhumor", "ppomppu"]      # 그룹 1: 1분 후
-    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 3분 후
+    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 6분 후 (그룹1 + 5분)
     
     # 현재 시간
     now = datetime.now()
@@ -79,8 +79,8 @@ def main():
         
         logger.info(f"📅 Group 1: {site_name} - First run at {start_time_group1.strftime('%H:%M:%S')}, then every 10 minutes")
     
-    # 그룹 2: 3분 후 시작, 10분마다 반복
-    start_time_group2 = now + timedelta(minutes=3)
+    # 그룹 2: 6분 후 시작 (그룹1 + 5분), 10분마다 반복
+    start_time_group2 = now + timedelta(minutes=6)
     for site_name in group2:
         trigger = IntervalTrigger(
             minutes=10,  # 10분마다
@@ -107,9 +107,9 @@ def main():
     for job in scheduler.get_jobs():
         logger.info(f"  - {job.name}")
     
-    logger.info("==" * 80)
+    logger.info("=" * 80)
     logger.info("✅ Scheduler is running with 3 concurrent workers...")
-    logger.info("💡 Group 1 starts in 1 minute, Group 2 starts in 3 minutes")
+    logger.info("💡 Group 1 starts in 1 minute, Group 2 starts in 6 minutes (5 min gap)")
     logger.info("🔄 All sites updated every 10 minutes")
     logger.info("=" * 80)
     
