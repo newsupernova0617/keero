@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
+	import { PUBLIC_ADSENSE_ENABLED } from '$env/static/public'
 
 	interface Props {
 		slot: string // 광고 슬롯 ID
@@ -11,8 +12,17 @@
 	let { slot, format = 'auto', responsive = true, className = '' }: Props = $props()
 
 	let adContainer: HTMLElement
+	
+	// 환경변수로 AdSense 활성화 여부 확인
+	const isAdSenseEnabled = PUBLIC_ADSENSE_ENABLED === '1'
 
 	onMount(() => {
+		// AdSense가 비활성화되어 있으면 로드하지 않음
+		if (!isAdSenseEnabled) {
+			console.log('AdSense is disabled (PUBLIC_ADSENSE_ENABLED=0)')
+			return
+		}
+
 		// AdSense 스크립트 로드
 		if (typeof window !== 'undefined' && !(window as any).adsbygoogle) {
 			const script = document.createElement('script')
@@ -31,17 +41,19 @@
 	})
 </script>
 
-<div class="ad-wrapper {className}">
-	<ins
-		bind:this={adContainer}
-		class="adsbygoogle"
-		style="display:block"
-		data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-		data-ad-slot={slot}
-		data-ad-format={format}
-		data-full-width-responsive={responsive}
-	></ins>
-</div>
+{#if isAdSenseEnabled}
+	<div class="ad-wrapper {className}">
+		<ins
+			bind:this={adContainer}
+			class="adsbygoogle"
+			style="display:block"
+			data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+			data-ad-slot={slot}
+			data-ad-format={format}
+			data-full-width-responsive={responsive}
+		></ins>
+	</div>
+{/if}
 
 <style>
 	.ad-wrapper {

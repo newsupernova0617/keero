@@ -195,10 +195,19 @@ class Scraper:
             if link and link.get("href"):
                 url = urljoin(self.base_url, link["href"])
                 
-                # 뽐뿌: freeboard 제외 (humor만 허용)
+                # 뽐뿌: 특정 게시판 제외 (유머만 허용)
                 if 'ppomppu.co.kr' in self.base_url:
-                    if 'id=freeboard' in url:
-                        continue  # 자유게시판 스킵
+                    # 제외할 게시판 목록
+                    excluded_boards = [
+                        'id=freeboard',      # 자유게시판
+                        'id=coupon',         # 쿠폰게시판
+                        'id=ppomppu',        # 쇼핑뽐뿌
+                        'id=ppomppu4',       # 뽐뿌스폰서
+                        'id=event',          # 이벤트게시판
+                        'id=money'           # 머니게시판
+                    ]
+                    if any(board in url for board in excluded_boards):
+                        continue  # 제외 게시판 스킵
                 
                 urls.append(url)
 
@@ -394,12 +403,31 @@ class Scraper:
             if data_original and ('transparent.gif' in src or 'placeholder' in src.lower() or not src):
                 img['src'] = data_original
         
-        # 이미지는 유지 (나중에 R2 URL로 치환됨)
-        # UI 아이콘은 replace_image_urls_in_html 후에 제거됨
+        # ⭐ 이미지를 placeholder로 교체 (순서 유지)
+        # 이미지는 images 테이블에 R2 URL로 저장되고, HTML에는 placeholder만 남김
+        image_index = 0
+        for img in soup.find_all('img'):
+            # placeholder div 생성
+            placeholder = soup.new_tag('div')
+            placeholder['data-image-index'] = str(image_index)
+            placeholder['class'] = 'image-placeholder'
+            
+            # img를 placeholder로 교체
+            img.replace_with(placeholder)
+            image_index += 1
+        
+        # 비디오도 placeholder로 교체
+        video_index = 0
+        for video in soup.find_all('video'):
+            placeholder = soup.new_tag('div')
+            placeholder['data-video-index'] = str(video_index)
+            placeholder['class'] = 'video-placeholder'
+            video.replace_with(placeholder)
+            video_index += 1
         
         # 모든 태그에서 class, style, id 속성 제거 (보안상 이유)
-        # 허용된 속성만 남기기
-        allowed_attrs = ['src', 'href', 'alt', 'title', 'controls', 'autoplay', 'loop', 'muted', 'playsinline']
+        # 허용된 속성만 남기기 (data-image-index, data-video-index는 유지)
+        allowed_attrs = ['href', 'alt', 'title', 'data-image-index', 'data-video-index']
         for tag in soup.find_all(True):
             tag.attrs = {k: v for k, v in tag.attrs.items() if k in allowed_attrs}
         
@@ -430,6 +458,32 @@ class Scraper:
                 # id가 btn_nemo로 시작하는 div
                 div_id = div.get('id', '')
                 if 'btn_nemo' in div_id or 'expand' in div_id:
+                    div.decompose()
+            
+            # 플레이 버튼 및 로딩 바 이미지 제거
+            for img in soup.find_all('img'):
+                src = img.get('src', '')
+                # play_trans.png 또는 loading_bar2.gif 제거
+                if '/images/play_trans.png' in src or 'play_trans.png' in src or \
+                   '/images/loading_bar2.gif' in src or 'loading_bar2.gif' in src:
+                    # 이미지와 그 부모 div도 제거
+                    parent = img.parent
+                    if parent and parent.name == 'div':
+                        parent.decompose()
+                    else:
+                        img.decompose()
+            
+            # 프로토콜 없는 URL 수정 (// -> https://)
+            for img in soup.find_all('img'):
+                src = img.get('src', '')
+                if src.startswith('//'):
+                    img['src'] = 'https:' + src
+            
+            # "MP4" 또는 "0.1MB" 같은 텍스트만 있는 div 제거
+            for div in soup.find_all('div'):
+                text = div.get_text(strip=True)
+                if text in ['MP4', '0.1MB', '0.2MB', '0.3MB', '0.4MB', '0.5MB'] or \
+                   (text.endswith('MB') and len(text) < 10):
                     div.decompose()
         
         # 펨코 비디오 플레이어 UI 및 찌꺼기 완벽 제거 (최종병기: 비디오 중심 탐색)

@@ -101,9 +101,32 @@ async function savePostWithImages(
 	error?: string;
 }> {
 	try {
-		// Drizzle 트랜잭션 사용 (동기 함수)
+		// 1. 이미지를 R2에 업로드 (트랜잭션 전에 수행)
+		const uploadedImages: Array<{ originalUrl: string; r2Url: string; r2Key: string; orderIndex: number }> = [];
+		
+		if (imageUrls && imageUrls.length > 0) {
+			console.log(`📤 Uploading ${imageUrls.length} images to R2...`);
+			
+			for (const img of imageUrls) {
+				try {
+					const { r2Url, r2Key } = await uploadImageToR2(img.url);
+					uploadedImages.push({
+						originalUrl: img.url,
+						r2Url,
+						r2Key,
+						orderIndex: img.order_index
+					});
+					console.log(`  ✅ Uploaded: ${img.url.substring(0, 50)}...`);
+				} catch (error) {
+					console.error(`  ❌ Failed to upload ${img.url}:`, error);
+					// 업로드 실패해도 계속 진행 (일부 이미지만 실패할 수 있음)
+				}
+			}
+		}
+
+		// 2. Drizzle 트랜잭션으로 DB 저장
 		const result = db.transaction((tx) => {
-			// 1. 중복 체크
+			// 중복 체크
 			const existing = tx
 				.select()
 				.from(posts)
@@ -114,8 +137,7 @@ async function savePostWithImages(
 				return { duplicate: true };
 			}
 
-			// 2. 게시글 저장
-			// 필수 필드
+			// 게시글 저장
 			const insertResult = tx.insert(posts).values({
 				site_name: postData.site_name,
 				title: postData.title,
@@ -128,16 +150,16 @@ async function savePostWithImages(
 
 			const postId = Number(insertResult.lastInsertRowid);
 
-			// 3. 이미지 저장 (있으면)
+			// 이미지 저장 (R2 URL 사용)
 			let imagesSaved = 0;
-			if (imageUrls && imageUrls.length > 0) {
-				for (const img of imageUrls) {
+			if (uploadedImages.length > 0) {
+				for (const img of uploadedImages) {
 					tx.insert(images).values({
 						post_id: postId,
-						original_url: img.url,
-						r2_url: img.url, // 일단 원본 URL 저장
-						r2_key: '',
-						order_index: img.order_index
+						original_url: img.originalUrl,
+						r2_url: img.r2Url,  // ← R2 URL 저장
+						r2_key: img.r2Key,
+						order_index: img.orderIndex
 					}).run();
 					imagesSaved++;
 				}
@@ -165,5 +187,6 @@ async function savePostWithImages(
 	}
 }
 
-// eq 함수 import 추가
+// eq 함수 및 R2 유틸리티 import
 import { eq } from 'drizzle-orm';
+import { uploadImageToR2 } from '$lib/server/r2';

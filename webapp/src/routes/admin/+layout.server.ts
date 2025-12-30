@@ -14,7 +14,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     // 사용자 DB에서 조회
     const dbUser = await db.select().from(users).where(eq(users.supabase_id, user.id)).limit(1)
 
-    if (!dbUser || dbUser.length === 0 || dbUser[0].role !== 99) {
+    // 관리자 권한 체크 (role이 99이거나 특정 이메일)
+    const isAdmin = 
+        (dbUser && dbUser.length > 0 && dbUser[0].role === 99) ||
+        user.email === 'yj43773@gmail.com'
+
+    if (!dbUser || dbUser.length === 0 || !isAdmin) {
         throw redirect(303, '/')
     }
 

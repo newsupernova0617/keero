@@ -8,10 +8,13 @@
 
 	let { supabase, session } = $derived(data)
 
-	// 이미 로그인되어 있으면 홈으로 리다이렉트
+	// 이미 로그인되어 있으면 리다이렉트
 	$effect(() => {
 		if (session) {
-			goto('/')
+			// URL에서 redirect 파라미터 확인
+			const params = new URLSearchParams(window.location.search)
+			const redirectTo = params.get('redirect') || '/'
+			goto(redirectTo)
 		}
 	})
 
