@@ -27,7 +27,7 @@ def crawl_site_job(site_name):
     """단일 사이트 크롤링 작업"""
     try:
         logger.info(f"🚀 Starting crawl job for: {site_name}")
-        from main import run_crawler
+        from core.main import run_crawler
         run_crawler(site_filter=site_name)
         logger.info(f"✅ Completed crawl job for: {site_name}")
     except Exception as e:
