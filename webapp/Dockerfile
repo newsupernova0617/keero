@@ -23,14 +23,14 @@ ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL
 ENV PUBLIC_SUPABASE_ANON_KEY=$PUBLIC_SUPABASE_ANON_KEY
 ENV R2_PUBLIC_URL=$R2_PUBLIC_URL
 
+# 데이터 디렉토리 생성 (빌드 전에 생성해야 함)
+RUN mkdir -p /data
+
 # 빌드 전 동기화 및 빌드
 RUN npx svelte-kit sync && npm run build
 
 # 프로덕션 의존성만 설치
 RUN npm prune --production
-
-# 데이터 디렉토리 생성
-RUN mkdir -p /data
 
 # 포트 노출
 EXPOSE 3000

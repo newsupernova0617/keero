@@ -1,9 +1,17 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
+import { mkdirSync, existsSync } from 'fs'
+import { dirname } from 'path'
 
 // DB 경로 (환경 변수로 설정 가능, 기본값: 로컬 개발용)
 const DB_PATH = process.env.DATABASE_PATH || '../data/posts.db'
+
+// DB 디렉토리 자동 생성
+const dbDir = dirname(DB_PATH)
+if (!existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true })
+}
 
 // SQLite 연결
 const sqlite = new Database(DB_PATH)
