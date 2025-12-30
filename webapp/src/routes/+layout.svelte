@@ -53,8 +53,11 @@
 				<!-- Logo + Mobile Menu -->
 				<div class="flex items-center gap-3">
 					<MobileNav {session} {user} />
-					<a href="/" class="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-						KEERO
+					<a href="/" class="flex items-center gap-2">
+						<img src="/logo.png" alt="KEERO Logo" class="h-8 w-8 rounded-lg" />
+						<span class="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+							KEERO
+						</span>
 					</a>
 				</div>
 
