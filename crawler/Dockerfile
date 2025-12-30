@@ -33,4 +33,4 @@ COPY . .
 RUN mkdir -p /data
 
 # 스케줄러 실행 (계속 실행되면서 주기적으로 크롤링)
-CMD ["python", "scheduler.py"]
+CMD ["python", "run_scheduler.py"]
