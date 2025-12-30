@@ -1,10 +1,10 @@
 """
 Railway용 크롤러 스케줄러
 
-5분 간격으로 6개 사이트를 2그룹으로 나눠 병렬 크롤링합니다.
+20분 간격으로 6개 사이트를 2그룹으로 나눠 병렬 크롤링합니다.
 - 그룹 1 (00분): 루리웹, 오유, 뽐뿌 (3개 동시)
-- 그룹 2 (05분): 펨코, 웃대, 개드립 (3개 동시)
-- 10분마다 전체 사이트 업데이트
+- 그룹 2 (10분): 펨코, 웃대, 개드립 (3개 동시)
+- 20분마다 전체 사이트 업데이트
 - BackgroundScheduler + ThreadPoolExecutor로 독립 실행
 """
 
@@ -52,16 +52,16 @@ def main():
     
     # 6개 사이트를 2그룹으로 분할
     group1 = ["ruliweb", "todayhumor", "ppomppu"]      # 그룹 1: 1분 후
-    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 6분 후 (그룹1 + 5분)
+    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 11분 후 (그룹1 + 10분)
     
     # 현재 시간
     now = datetime.now()
     
-    # 그룹 1: 1분 후 시작, 10분마다 반복
+    # 그룹 1: 1분 후 시작, 20분마다 반복
     start_time_group1 = now + timedelta(minutes=1)
     for site_name in group1:
         trigger = IntervalTrigger(
-            minutes=10,  # 10분마다
+            minutes=20,  # 20분마다
             start_date=start_time_group1,
             timezone='Asia/Seoul'
         )
@@ -77,13 +77,13 @@ def main():
             misfire_grace_time=300  # 5분 이내 누락 허용
         )
         
-        logger.info(f"📅 Group 1: {site_name} - First run at {start_time_group1.strftime('%H:%M:%S')}, then every 10 minutes")
+        logger.info(f"📅 Group 1: {site_name} - First run at {start_time_group1.strftime('%H:%M:%S')}, then every 20 minutes")
     
-    # 그룹 2: 6분 후 시작 (그룹1 + 5분), 10분마다 반복
-    start_time_group2 = now + timedelta(minutes=6)
+    # 그룹 2: 11분 후 시작 (그룹1 + 10분), 20분마다 반복
+    start_time_group2 = now + timedelta(minutes=11)
     for site_name in group2:
         trigger = IntervalTrigger(
-            minutes=10,  # 10분마다
+            minutes=20,  # 20분마다
             start_date=start_time_group2,
             timezone='Asia/Seoul'
         )
@@ -99,7 +99,7 @@ def main():
             misfire_grace_time=300
         )
         
-        logger.info(f"📅 Group 2: {site_name} - First run at {start_time_group2.strftime('%H:%M:%S')}, then every 10 minutes")
+        logger.info(f"📅 Group 2: {site_name} - First run at {start_time_group2.strftime('%H:%M:%S')}, then every 20 minutes")
     
     # 등록된 작업 출력
     logger.info("=" * 80)
@@ -109,8 +109,8 @@ def main():
     
     logger.info("=" * 80)
     logger.info("✅ Scheduler is running with 3 concurrent workers...")
-    logger.info("💡 Group 1 starts in 1 minute, Group 2 starts in 6 minutes (5 min gap)")
-    logger.info("🔄 All sites updated every 10 minutes")
+    logger.info("💡 Group 1 starts in 1 minute, Group 2 starts in 11 minutes (10 min gap)")
+    logger.info("🔄 All sites updated every 20 minutes")
     logger.info("=" * 80)
     
     # 스케줄러 시작 (백그라운드)
