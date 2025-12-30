@@ -51,17 +51,18 @@ def main():
     )
     
     # 6개 사이트를 2그룹으로 분할
-    group1 = ["ruliweb", "todayhumor", "ppomppu"]      # 그룹 1: 00분
-    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 05분
+    group1 = ["ruliweb", "todayhumor", "ppomppu"]      # 그룹 1: 1분 후
+    group2 = ["fmkorea", "humoruniv", "dogdrip"]       # 그룹 2: 3분 후
     
     # 현재 시간
     now = datetime.now()
     
-    # 그룹 1: 즉시 시작, 10분마다 반복
+    # 그룹 1: 1분 후 시작, 10분마다 반복
+    start_time_group1 = now + timedelta(minutes=1)
     for site_name in group1:
         trigger = IntervalTrigger(
             minutes=10,  # 10분마다
-            start_date=now,
+            start_date=start_time_group1,
             timezone='Asia/Seoul'
         )
         
@@ -76,10 +77,10 @@ def main():
             misfire_grace_time=300  # 5분 이내 누락 허용
         )
         
-        logger.info(f"📅 Group 1: {site_name} - First run NOW, then every 10 minutes")
+        logger.info(f"📅 Group 1: {site_name} - First run at {start_time_group1.strftime('%H:%M:%S')}, then every 10 minutes")
     
-    # 그룹 2: 5분 후 시작, 10분마다 반복
-    start_time_group2 = now + timedelta(minutes=5)
+    # 그룹 2: 3분 후 시작, 10분마다 반복
+    start_time_group2 = now + timedelta(minutes=3)
     for site_name in group2:
         trigger = IntervalTrigger(
             minutes=10,  # 10분마다
@@ -106,9 +107,9 @@ def main():
     for job in scheduler.get_jobs():
         logger.info(f"  - {job.name}")
     
-    logger.info("=" * 80)
+    logger.info("==" * 80)
     logger.info("✅ Scheduler is running with 3 concurrent workers...")
-    logger.info("💡 2 groups of 3 sites each, 5 minutes apart")
+    logger.info("💡 Group 1 starts in 1 minute, Group 2 starts in 3 minutes")
     logger.info("🔄 All sites updated every 10 minutes")
     logger.info("=" * 80)
     
