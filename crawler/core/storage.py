@@ -703,16 +703,16 @@ class DatabaseManager:
         elif img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # 이미지 크기 제한 (최대 1200px - 강력 압축)
-        max_dimension = 1200
+        # 이미지 크기 제한 (최대 600px - 극한 압축)
+        max_dimension = 600
         if max(img.size) > max_dimension:
             ratio = max_dimension / max(img.size)
             new_size = tuple(int(dim * ratio) for dim in img.size)
             img = img.resize(new_size, PILImage.Resampling.LANCZOS)
         
-        # WebP로 변환 (품질 65% - 강력 압축)
+        # WebP로 변환 (품질 45% - 극한 압축)
         output = io.BytesIO()
-        img.save(output, format='WEBP', quality=65, method=6)
+        img.save(output, format='WEBP', quality=45, method=6)
         optimized_data = output.getvalue()
         optimized_size = len(optimized_data)
         
@@ -759,8 +759,8 @@ class DatabaseManager:
             height = int(video_info['height'])
             duration = float(probe['format'].get('duration', 0))
             
-            # 해상도 제한 (최대 480p - 강력 압축)
-            max_height = 480
+            # 해상도 제한 (최대 360p - 극한 압축)
+            max_height = 360
             if height > max_height:
                 scale_ratio = max_height / height
                 new_width = int(width * scale_ratio)
@@ -772,14 +772,17 @@ class DatabaseManager:
             else:
                 scale_filter = None
             
-            # ffmpeg 명령 구성 (subprocess 사용) - CRF 42 강력 압축
+            # ffmpeg 명령 구성 (subprocess 사용) - 극한 압축
             cmd = [
                 'ffmpeg',
                 '-i', input_path,
                 '-vcodec', 'libvpx-vp9',
-                '-crf', '42',  # 더 높은 압축 (31 -> 42)
+                '-crf', '50',  # 극한 압축 (42 -> 50)
                 '-b:v', '0',
-                '-cpu-used', '5',  # 더 빠른 인코딩 (4 -> 5)
+                '-maxrate', '400k',  # 최대 비트레이트 제한
+                '-bufsize', '800k',
+                '-r', '20',  # 20fps로 제한
+                '-cpu-used', '5',
                 '-row-mt', '1',
                 '-tile-columns', '2',
                 '-threads', '4',
