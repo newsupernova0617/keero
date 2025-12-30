@@ -1,3 +1,4 @@
+```
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
@@ -9,6 +10,7 @@
 	import { Search } from '@lucide/svelte'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
+	import AdFit from '$lib/components/ads/AdFit.svelte'
 	import { AD_CONFIG } from '$lib/config/ads'
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte'
 	import Footer from '$lib/components/Footer.svelte'
@@ -105,6 +107,15 @@
 		<div class="mx-auto max-w-7xl px-4 py-2">
 			<AdPost unitId={AD_CONFIG.adpost.units.header} width={728} height={90} />
 		</div>
+	{:else if AD_CONFIG.adfit.enabled}
+		<!-- 데스크톱: 728x90 -->
+		<div class="hidden md:flex mx-auto max-w-7xl px-4 py-2 justify-center">
+			<AdFit unit={AD_CONFIG.adfit.units.leaderboard} width={728} height={90} />
+		</div>
+		<!-- 모바일: 320x100 -->
+		<div class="flex md:hidden justify-center px-4 py-2">
+			<AdFit unit={AD_CONFIG.adfit.units.mobileLarge} width={320} height={100} />
+		</div>
 	{/if}
 
 	<!-- Main Content -->
@@ -119,8 +130,18 @@
 		<div class="mx-auto max-w-7xl px-4 py-2">
 			<AdPost unitId={AD_CONFIG.adpost.units.footer} width={728} height={90} />
 		</div>
+	{:else if AD_CONFIG.adfit.enabled}
+		<!-- 데스크톱: 728x90 -->
+		<div class="hidden md:flex mx-auto max-w-7xl px-4 py-2 justify-center">
+			<AdFit unit={AD_CONFIG.adfit.units.leaderboard} width={728} height={90} />
+		</div>
+		<!-- 모바일: 320x100 -->
+		<div class="flex md:hidden justify-center px-4 py-2">
+			<AdFit unit={AD_CONFIG.adfit.units.mobileLarge} width={320} height={100} />
+		</div>
 	{/if}
 
 	<!-- Footer -->
 	<Footer />
 </div>
+```
