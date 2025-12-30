@@ -96,6 +96,15 @@ async function saveLogs(
 	let sqlite: Database.Database | null = null;
 
 	try {
+		// 디렉토리 자동 생성
+		const { mkdirSync, existsSync } = await import('fs');
+		const { dirname } = await import('path');
+		
+		const dbDir = dirname(LOG_DB_PATH);
+		if (!existsSync(dbDir)) {
+			mkdirSync(dbDir, { recursive: true });
+		}
+
 		// logs.db 연결
 		sqlite = new Database(LOG_DB_PATH);
 
