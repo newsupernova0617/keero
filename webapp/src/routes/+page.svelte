@@ -2,6 +2,7 @@
 	import type { PageData } from './$types'
 	import * as Card from '$lib/components/ui/card'
 	import { Badge } from '$lib/components/ui/badge'
+	import { Button } from '$lib/components/ui/button'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
 	import AdFit from '$lib/components/ads/AdFit.svelte'
@@ -169,5 +170,57 @@
 				{/if}
 			{/each}
 		</div>
+
+	<!-- 페이지네이션 -->
+	{#if data.pagination.totalPages > 1}
+		<div class="mt-8 flex justify-center gap-2">
+			<!-- 이전 페이지 -->
+			{#if data.pagination.hasPrev}
+				<Button 
+					href="/?page={data.pagination.page - 1}" 
+					variant="outline"
+					size="sm"
+				>
+					이전
+				</Button>
+			{/if}
+
+			<!-- 페이지 번호들 -->
+			{#each Array.from({ length: Math.min(5, data.pagination.totalPages) }, (_, i) => {
+				const totalPages = data.pagination.totalPages;
+				const currentPage = data.pagination.page;
+				let startPage = Math.max(1, currentPage - 2);
+				let endPage = Math.min(totalPages, startPage + 4);
+				
+				if (endPage - startPage < 4) {
+					startPage = Math.max(1, endPage - 4);
+				}
+				
+				return startPage + i;
+			}) as pageNum}
+				{#if pageNum <= data.pagination.totalPages}
+					<Button
+						href="/?page={pageNum}"
+						variant={pageNum === data.pagination.page ? "default" : "outline"}
+						size="sm"
+					>
+						{pageNum}
+					</Button>
+				{/if}
+			{/each}
+
+			<!-- 다음 페이지 -->
+			{#if data.pagination.hasNext}
+				<Button 
+					href="/?page={data.pagination.page + 1}" 
+					variant="outline"
+					size="sm"
+				>
+					다음
+				</Button>
+			{/if}
+		</div>
 	{/if}
+{/if}
 </div>
+```
