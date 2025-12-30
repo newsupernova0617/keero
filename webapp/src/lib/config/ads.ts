@@ -33,7 +33,8 @@ export const AD_CONFIG = {
             inFeed: 'DAN-ZZZZZZZZZZZZZZZZ', // 피드 내
             inArticle: 'DAN-AAAAAAAAAAAAAAAA', // 본문 중간
             mobile: 'DAN-BBBBBBBBBBBBBBBB', // 모바일 배너
-            sidebar: 'DAN-CCCCCCCCCCCCCCCC' // 사이드바
+            sidebar: 'DAN-CCCCCCCCCCCCCCCC', // 사이드바
+            mediumRectangle: 'DAN-r7zwxqiBXJy8ONPu' // 300x250 중형 직사각형
         }
     }
 }

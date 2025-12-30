@@ -241,12 +241,15 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	</script>
 </svelte:head>
 
-<div class="mx-auto max-w-4xl space-y-6">
-	<!-- 뒤로 가기 -->
-	<Button href="/" variant="ghost" size="sm" class="gap-2">
-		<ArrowLeft class="h-4 w-4" />
-		목록으로
-	</Button>
+<div class="mx-auto max-w-7xl">
+	<div class="flex gap-6">
+		<!-- 메인 콘텐츠 -->
+		<div class="flex-1 min-w-0 space-y-6">
+			<!-- 뒤로 가기 -->
+			<Button href="/" variant="ghost" size="sm" class="gap-2">
+				<ArrowLeft class="h-4 w-4" />
+				목록으로
+			</Button>
 
 	<!-- 게시글 카드 -->
 	<Card.Root class="overflow-hidden">
@@ -385,6 +388,16 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 		</div>
 	</div>
 
+	<!-- 300x250 중형 광고 (본문 하단) -->
+	{#if AD_CONFIG.adfit.enabled}
+		<div class="py-6 flex justify-center">
+			<div class="flex flex-col items-center gap-2">
+				<span class="text-xs text-muted-foreground">Advertisement</span>
+				<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
+			</div>
+		</div>
+	{/if}
+
 	<!-- 댓글 섹션 -->
 	<Card.Root id="comments">
 		<Card.Header>
@@ -485,4 +498,16 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 {/if}
 		</Card.Content>
 	</Card.Root>
+		</div>
+		
+		<!-- 사이드바 (데스크톱만) -->
+		{#if AD_CONFIG.adfit.enabled}
+			<aside class="hidden xl:block w-80 sticky top-20 self-start space-y-4">
+				<div class="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
+					<span class="text-xs text-muted-foreground">Advertisement</span>
+					<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
+				</div>
+			</aside>
+		{/if}
+	</div>
 </div>

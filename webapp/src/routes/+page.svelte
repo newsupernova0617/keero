@@ -4,6 +4,7 @@
 	import { Badge } from '$lib/components/ui/badge'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
+	import AdFit from '$lib/components/ads/AdFit.svelte'
 	import { AD_CONFIG, AD_RULES } from '$lib/config/ads'
 	// import SiteFilter from '$lib/components/SiteFilter.svelte'
 	import PostCardSkeleton from '$lib/components/PostCardSkeleton.svelte'
@@ -156,11 +157,16 @@
 
 				<!-- 피드 내 광고 (N개마다) -->
 				{#if (index + 1) % AD_RULES.feedInterval === 0 && index < filteredPosts.length - 1}
-					<div class="col-span-full">
+					<div class="col-span-full flex justify-center py-6">
 						{#if AD_CONFIG.adsense.enabled}
 							<AdSense slot={AD_CONFIG.adsense.slots.inFeed} format="auto" />
 						{:else if AD_CONFIG.adpost.enabled}
 							<AdPost unitId={AD_CONFIG.adpost.units.inFeed} width={728} height={90} />
+						{:else if AD_CONFIG.adfit.enabled}
+							<div class="flex flex-col items-center gap-2">
+								<span class="text-xs text-muted-foreground">Advertisement</span>
+								<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
+							</div>
 						{/if}
 					</div>
 				{/if}
