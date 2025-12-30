@@ -2,8 +2,8 @@ import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
 
-// DB 경로 (크롤러와 동일한 DB 파일 사용)
-const DB_PATH = '../data/posts.db'
+// DB 경로 (환경 변수로 설정 가능, 기본값: 로컬 개발용)
+const DB_PATH = process.env.DATABASE_PATH || '../data/posts.db'
 
 // SQLite 연결
 const sqlite = new Database(DB_PATH)
