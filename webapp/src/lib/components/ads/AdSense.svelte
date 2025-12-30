@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
-	import { PUBLIC_ADSENSE_ENABLED } from '$env/static/public'
+	import { env } from '$env/dynamic/public'
 
 	interface Props {
 		slot: string // 광고 슬롯 ID
@@ -13,8 +13,8 @@
 
 	let adContainer: HTMLElement
 	
-	// 환경변수로 AdSense 활성화 여부 확인
-	const isAdSenseEnabled = PUBLIC_ADSENSE_ENABLED === '1'
+	// 환경변수로 AdSense 활성화 여부 확인 (기본값: 비활성화)
+	const isAdSenseEnabled = env.PUBLIC_ADSENSE_ENABLED === '1'
 
 	onMount(() => {
 		// AdSense가 비활성화되어 있으면 로드하지 않음
