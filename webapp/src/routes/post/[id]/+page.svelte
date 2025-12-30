@@ -15,6 +15,7 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	import Comment from '$lib/components/Comment.svelte'
 	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare } from '@lucide/svelte'
 	import { onMount } from 'svelte'
+	import { getBaseUrl, getFullUrl, getDefaultOgImage, SITE_NAME } from '$lib/utils/seo'
 
 	let { data }: { data: PageData } = $props()
 	let { post, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
@@ -182,12 +183,19 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<meta name="keywords" content="유머, {post.site_name}, 웃긴글, 재미" />
 
 	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:title" content={post.title} />
 	<meta property="og:description" content={post.content?.substring(0, 160) || post.title} />
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://yourdomain.com/post/{post.id}" />
+	<meta property="og:url" content={getFullUrl(`/post/${post.id}`)} />
 	{#if images.length > 0}
 		<meta property="og:image" content={images[0].r2_url} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+	{:else}
+		<meta property="og:image" content={getDefaultOgImage()} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
 	{/if}
 	<meta property="article:published_time" content={post.created_at} />
 	<meta property="article:section" content="유머" />
@@ -198,10 +206,39 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<meta name="twitter:description" content={post.content?.substring(0, 160) || post.title} />
 	{#if images.length > 0}
 		<meta name="twitter:image" content={images[0].r2_url} />
+	{:else}
+		<meta name="twitter:image" content={getDefaultOgImage()} />
 	{/if}
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="https://yourdomain.com/post/{post.id}" />
+	<link rel="canonical" href={getFullUrl(`/post/${post.id}`)} />
+	
+	<!-- JSON-LD 구조화 데이터 -->
+	<script type="application/ld+json">
+		{JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "Article",
+			"headline": post.title,
+			"description": post.content?.substring(0, 160) || post.title,
+			"image": images.length > 0 ? images[0].r2_url : getDefaultOgImage(),
+			"url": getFullUrl(`/post/${post.id}`),
+			"datePublished": post.created_at,
+			"dateModified": post.crawled_at,
+			"author": {
+				"@type": "Organization",
+				"name": post.site_name
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": SITE_NAME,
+				"logo": {
+					"@type": "ImageObject",
+					"url": getFullUrl("/logo.png")
+				}
+			},
+			"articleSection": "유머"
+		})}
+	</script>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl space-y-6">

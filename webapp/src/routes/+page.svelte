@@ -9,6 +9,7 @@
 	import PostCardSkeleton from '$lib/components/PostCardSkeleton.svelte'
 	import EmptyState from '$lib/components/EmptyState.svelte'
 	import { Image } from '@lucide/svelte'
+	import { getBaseUrl, getDefaultOgImage, SITE_NAME } from '$lib/utils/seo'
 
 	let { data }: { data: PageData } = $props()
 	
@@ -26,6 +27,9 @@
 	// function handleFilterChange(site: string) {
 	// 	selectedSite = site
 	// }
+	
+	const baseUrl = getBaseUrl()
+	const ogImage = getDefaultOgImage()
 </script>
 
 <svelte:head>
@@ -37,14 +41,17 @@
 	<meta name="keywords" content="유머, 웃긴글, 재미, 커뮤니티, FMKorea, 루리웹, 베스트글" />
 
 	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:title" content="유머 게시판 - 재미있는 유머, 웃긴 글 모음" />
 	<meta
 		property="og:description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://yourdomain.com/" />
-	<meta property="og:image" content="https://yourdomain.com/og-image.png" />
+	<meta property="og:url" content={baseUrl} />
+	<meta property="og:image" content={ogImage} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
@@ -53,10 +60,26 @@
 		name="twitter:description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
-	<meta name="twitter:image" content="https://yourdomain.com/og-image.png" />
+	<meta name="twitter:image" content={ogImage} />
 
 	<!-- 추가 SEO -->
-	<link rel="canonical" href="https://yourdomain.com/" />
+	<link rel="canonical" href={baseUrl} />
+	
+	<!-- JSON-LD 구조화 데이터 -->
+	<script type="application/ld+json">
+		{JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			"name": SITE_NAME,
+			"url": baseUrl,
+			"description": "FMKorea, 루리웹, 오늘의유머 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요.",
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": `${baseUrl}/search?q={search_term_string}`,
+				"query-input": "required name=search_term_string"
+			}
+		})}
+	</script>
 </svelte:head>
 
 <div class="space-y-6">
