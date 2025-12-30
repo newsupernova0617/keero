@@ -163,10 +163,7 @@
 						{:else if AD_CONFIG.adpost.enabled}
 							<AdPost unitId={AD_CONFIG.adpost.units.inFeed} width={728} height={90} />
 						{:else if AD_CONFIG.adfit.enabled}
-							<div class="flex flex-col items-center gap-2">
-								<span class="text-xs text-muted-foreground">Advertisement</span>
-								<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
-							</div>
+							<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
 						{/if}
 					</div>
 				{/if}

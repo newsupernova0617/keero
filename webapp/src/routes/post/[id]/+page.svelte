@@ -372,13 +372,6 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<!-- 광고 영역 -->
 	<div class="py-4">
 		<div class="flex flex-col items-center gap-3">
-			<!-- 광고 라벨 -->
-			<div class="flex items-center gap-2">
-				<div class="h-px w-12 bg-border"></div>
-				<span class="text-xs font-medium text-muted-foreground">Advertisement</span>
-				<div class="h-px w-12 bg-border"></div>
-			</div>
-			
 			<!-- 광고 -->
 			{#if AD_CONFIG.adsense.enabled}
 				<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="horizontal" />
@@ -392,7 +385,6 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	{#if AD_CONFIG.adfit.enabled}
 		<div class="py-6 flex justify-center">
 			<div class="flex flex-col items-center gap-2">
-				<span class="text-xs text-muted-foreground">Advertisement</span>
 				<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
 			</div>
 		</div>
@@ -504,7 +496,6 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 		{#if AD_CONFIG.adfit.enabled}
 			<aside class="hidden xl:block w-80 sticky top-20 self-start space-y-4">
 				<div class="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
-					<span class="text-xs text-muted-foreground">Advertisement</span>
 					<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
 				</div>
 			</aside>
