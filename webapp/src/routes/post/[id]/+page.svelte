@@ -67,7 +67,9 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 		// HTML sanitize - placeholder 태그 제거하고 텍스트만 남김
 		let html = DOMPurify.sanitize(post.content_html, {
 			ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'div', 'span', 'blockquote', 'ul', 'ol', 'li', 'table', 'tbody', 'tr', 'td'],
-			ALLOWED_ATTR: ['href', 'alt', 'title', 'class']
+			ALLOWED_ATTR: ['href', 'alt', 'title', 'class'],
+			// Security: Block javascript: URLs and other dangerous schemes
+			ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 		})
 		
 		return html

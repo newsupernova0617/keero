@@ -65,7 +65,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         return { session: newSession, user }
     }
 
-    return resolve(event, {
+    const response = await resolve(event, {
         filterSerializedResponseHeaders(name) {
             /**
              * Supabase libraries use the `content-range` and `x-supabase-api-version`
@@ -74,4 +74,34 @@ export const handle: Handle = async ({ event, resolve }) => {
             return name === 'content-range' || name === 'x-supabase-api-version'
         }
     })
+
+    // Security: Add security headers to fix OWASP ZAP findings
+    // CSP: Prevents XSS attacks
+    response.headers.set(
+        'Content-Security-Policy',
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://www.googletagmanager.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "img-src 'self' data: https: blob:; " +
+        "connect-src 'self' https://*.supabase.co; " +
+        "frame-src 'self' https://www.google.com; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "form-action 'self';"
+    )
+
+    // X-Frame-Options: Prevents clickjacking
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+
+    // X-Content-Type-Options: Prevents MIME type sniffing
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+
+    // Referrer-Policy: Controls referrer information
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+    // Permissions-Policy: Controls browser features
+    response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+
+    return response
 }

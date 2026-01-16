@@ -1,10 +1,29 @@
 <script lang="ts">
 	import { Separator } from '$lib/components/ui/separator'
+	import { getBaseUrl, SITE_NAME } from '$lib/utils/seo'
+
+	const baseUrl = getBaseUrl()
 </script>
 
 <svelte:head>
 	<title>이용약관 - KEERO</title>
 	<meta name="description" content="KEERO 이용약관" />
+	
+	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
+	<meta property="og:title" content="이용약관 - KEERO" />
+	<meta property="og:description" content="KEERO 이용약관" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="{baseUrl}/terms" />
+	<meta property="og:image" content="{baseUrl}/og-default.png" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="이용약관 - KEERO" />
+	<meta name="twitter:description" content="KEERO 이용약관" />
+	
+	<!-- Canonical -->
+	<link rel="canonical" href="{baseUrl}/terms" />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-12">

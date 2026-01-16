@@ -125,6 +125,38 @@ function initializeDatabase() {
                     resolved_by INTEGER REFERENCES users(id)
                 );
 
+                CREATE TABLE IF NOT EXISTS highlights (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    week_start TEXT NOT NULL,
+                    week_end TEXT NOT NULL,
+                    post_id INTEGER NOT NULL REFERENCES posts(id),
+                    rank INTEGER NOT NULL,
+                    editor_comment TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER REFERENCES users(id),
+                    action TEXT NOT NULL,
+                    table_name TEXT NOT NULL,
+                    record_id INTEGER,
+                    old_value TEXT,
+                    new_value TEXT,
+                    query TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS backup_settings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    enabled INTEGER DEFAULT 0,
+                    frequency TEXT DEFAULT 'daily',
+                    time TEXT DEFAULT '03:00',
+                    retention_days INTEGER DEFAULT 30,
+                    last_backup_at TEXT,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_posts_site_name ON posts(site_name);
                 CREATE INDEX IF NOT EXISTS idx_posts_crawled_at ON posts(crawled_at);
                 CREATE INDEX IF NOT EXISTS idx_images_post_id ON images(post_id);

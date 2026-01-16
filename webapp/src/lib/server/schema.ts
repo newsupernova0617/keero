@@ -100,6 +100,40 @@ export const reports = sqliteTable('reports', {
     resolved_by: integer('resolved_by').references(() => users.id)
 })
 
+export const highlights = sqliteTable('highlights', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	weekStart: text('week_start').notNull(), // 주 시작일 (월요일, YYYY-MM-DD)
+	weekEnd: text('week_end').notNull(), // 주 종료일 (일요일, YYYY-MM-DD)
+	postId: integer('post_id')
+		.notNull()
+		.references(() => posts.id),
+	rank: integer('rank').notNull(), // 순위 (1-10)
+	editorComment: text('editor_comment'), // 에디터 코멘트 (선택)
+	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const auditLogs = sqliteTable('audit_logs', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	userId: integer('user_id').references(() => users.id),
+	action: text('action').notNull(), // 'create', 'update', 'delete', 'query'
+	tableName: text('table_name').notNull(),
+	recordId: integer('record_id'),
+	oldValue: text('old_value'), // JSON string
+	newValue: text('new_value'), // JSON string
+	query: text('query'), // SQL 쿼리 (query 액션인 경우)
+	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const backupSettings = sqliteTable('backup_settings', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	enabled: integer('enabled', { mode: 'boolean' }).default(false),
+	frequency: text('frequency').default('daily'), // 'daily', 'weekly', 'monthly'
+	time: text('time').default('03:00'), // HH:MM
+	retentionDays: integer('retention_days').default(30),
+	lastBackupAt: text('last_backup_at'),
+	updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`)
+})
+
 export type Post = typeof posts.$inferSelect
 export type NewPost = typeof posts.$inferInsert
 export type Image = typeof images.$inferSelect
@@ -107,3 +141,9 @@ export type User = typeof users.$inferSelect
 export type Comment = typeof comments.$inferSelect
 export type Bookmark = typeof bookmarks.$inferSelect
 export type Report = typeof reports.$inferSelect
+export type Highlight = typeof highlights.$inferSelect
+export type NewHighlight = typeof highlights.$inferInsert
+export type AuditLog = typeof auditLogs.$inferSelect
+export type NewAuditLog = typeof auditLogs.$inferInsert
+export type BackupSettings = typeof backupSettings.$inferSelect
+export type NewBackupSettings = typeof backupSettings.$inferInsert

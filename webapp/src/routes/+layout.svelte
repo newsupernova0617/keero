@@ -1,4 +1,3 @@
-```
 <script lang="ts">
 	import './layout.css';
 	import { invalidate } from '$app/navigation'
@@ -15,6 +14,7 @@
 	import Footer from '$lib/components/Footer.svelte'
 	import MobileNav from '$lib/components/MobileNav.svelte'
 	import UserMenu from '$lib/components/UserMenu.svelte'
+	import GoogleAnalytics from '$lib/components/GoogleAnalytics.svelte'
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
@@ -41,6 +41,9 @@
 		return () => authData.subscription.unsubscribe()
 	})
 </script>
+
+<!-- Google Analytics -->
+<GoogleAnalytics />
 
 <div class="flex min-h-screen flex-col bg-background">
 	<!-- Header -->
@@ -144,4 +147,3 @@
 	<!-- Footer -->
 	<Footer />
 </div>
-```

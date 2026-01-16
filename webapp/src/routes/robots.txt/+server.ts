@@ -1,5 +1,12 @@
+import { env } from '$env/dynamic/public'
+
 export async function GET({ url }) {
-    const baseUrl = url.origin
+    // PUBLIC_BASE_URL 우선 사용 (Railway 배포 대비)
+    // https:// 프로토콜이 없으면 자동 추가
+    let baseUrl = env.PUBLIC_BASE_URL || url.origin
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = `https://${baseUrl}`
+    }
 
     const robotsTxt = `User-agent: *
 Allow: /

@@ -102,7 +102,12 @@ export function generateSitemapEntry(config: {
 import { env } from '$env/dynamic/public'
 
 export function getBaseUrl(): string {
-    return env.PUBLIC_BASE_URL || 'https://keerosveltekit-production.up.railway.app'
+    let baseUrl = env.PUBLIC_BASE_URL || 'https://keerosveltekit-production.up.railway.app'
+    // https:// 프로토콜이 없으면 자동 추가
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = `https://${baseUrl}`
+    }
+    return baseUrl
 }
 
 export function getFullUrl(path: string): string {

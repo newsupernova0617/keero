@@ -17,7 +17,11 @@ export async function GET({ url }) {
             .limit(1000)
 
         // PUBLIC_BASE_URL 우선 사용 (Railway 배포 대비)
-        const baseUrl = env.PUBLIC_BASE_URL || url.origin
+        // https:// 프로토콜이 없으면 자동 추가
+        let baseUrl = env.PUBLIC_BASE_URL || url.origin
+        if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+            baseUrl = `https://${baseUrl}`
+        }
 
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -27,9 +31,54 @@ export async function GET({ url }) {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${baseUrl}/search</loc>
+    <loc>${baseUrl}/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/dmca</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/stats</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/highlights/weekly</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/best-comments</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/search</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
   </url>
 ${allPosts
                 .map(

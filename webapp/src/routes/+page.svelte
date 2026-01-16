@@ -35,7 +35,7 @@
 </script>
 
 <svelte:head>
-	<title>유머 게시판 - 재미있는 유머, 웃긴 글 모음</title>
+	<title>KEERO - 재미있는 유머, 웃긴 글 모음</title>
 	<meta
 		name="description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요. 매일 업데이트되는 최신 유머 게시글."
@@ -100,6 +100,35 @@
 
 	<!-- Site Filter -->
 	<!-- <SiteFilter onFilterChange={handleFilterChange} /> -->
+
+	<!-- 하이라이트 배너 -->
+	<div class="grid gap-4 md:grid-cols-2">
+		<a
+			href="/highlights/weekly"
+			class="group block rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+		>
+			<div class="mb-2 text-2xl">📅</div>
+			<h2 class="mb-2 text-xl font-bold transition-colors group-hover:text-primary">
+				주간 하이라이트
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				이번 주 가장 인기있었던 TOP 10 게시글과 베스트 댓글을 확인하세요
+			</p>
+		</a>
+
+		<a
+			href="/best-comments"
+			class="group block rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+		>
+			<div class="mb-2 text-2xl">💬</div>
+			<h2 class="mb-2 text-xl font-bold transition-colors group-hover:text-primary">
+				베스트 댓글
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				커뮤니티에서 가장 많은 사랑을 받은 재치있는 댓글 모음
+			</p>
+		</a>
+	</div>
 
 	<!-- Posts Grid -->
 	{#if isLoading}
@@ -223,4 +252,3 @@
 	{/if}
 {/if}
 </div>
-```

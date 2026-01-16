@@ -3,6 +3,7 @@ import { posts, images, comments, users } from '$lib/server/schema'
 import { eq, asc, sql } from 'drizzle-orm'
 import { error, fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
+import { checkRateLimit } from '$lib/server/rateLimit'
 
 export const load: PageServerLoad = async ({ params, locals }) => {
     const postId = parseInt(params.id)
@@ -131,6 +132,21 @@ export const actions: Actions = {
 
         if (!session || !user) {
             return fail(401, { error: '로그인이 필요합니다.' })
+        }
+
+        // Security: Rate limiting - 10 comments per minute
+        const rateLimit = checkRateLimit({
+            identifier: user.id,
+            maxRequests: 10,
+            windowSeconds: 60,
+            action: 'comment'
+        })
+
+        if (!rateLimit.allowed) {
+            return fail(429, { 
+                error: `너무 많은 댓글을 작성했습니다. ${rateLimit.retryAfter}초 후에 다시 시도해주세요.`,
+                retryAfter: rateLimit.retryAfter
+            })
         }
 
         const formData = await request.formData()
@@ -304,6 +320,21 @@ export const actions: Actions = {
 
         if (!session || !user) {
             return fail(401, { error: '로그인이 필요합니다.' })
+        }
+
+        // Security: Rate limiting - 30 likes per minute
+        const rateLimit = checkRateLimit({
+            identifier: user.id,
+            maxRequests: 30,
+            windowSeconds: 60,
+            action: 'like'
+        })
+
+        if (!rateLimit.allowed) {
+            return fail(429, { 
+                error: `너무 많은 좋아요를 시도했습니다. ${rateLimit.retryAfter}초 후에 다시 시도해주세요.`,
+                retryAfter: rateLimit.retryAfter
+            })
         }
 
         const postId = parseInt(params.id)

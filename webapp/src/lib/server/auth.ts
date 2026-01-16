@@ -3,6 +3,10 @@ import { db } from '$lib/server/db'
 import { users } from '$lib/server/schema'
 import { eq } from 'drizzle-orm'
 import type { RequestEvent } from '@sveltejs/kit'
+import { env } from '$env/dynamic/private'
+
+// Security: Admin emails from environment variable (comma-separated)
+const ADMIN_EMAILS = (env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean)
 
 /**
  * 관리자 권한 체크 함수
@@ -27,17 +31,10 @@ export async function requireAdmin(event: RequestEvent) {
         throw error(403, '권한이 없습니다.')
     }
 
-    // 관리자 권한 체크 (role이 99(admin)이거나 특정 이메일)
+    // 관리자 권한 체크 (role이 99(admin)이거나 환경변수에 등록된 이메일)
     const isAdmin = 
         dbUser[0].role === 99 || // 99: admin
-        user.email === 'yj43773@gmail.com' // Admin 이메일
-
-    // 디버깅 로그
-    console.log('Admin Check:', {
-        userEmail: user.email,
-        dbRole: dbUser[0].role,
-        isAdmin
-    })
+        ADMIN_EMAILS.includes(user.email || '')
 
     if (!isAdmin) {
         throw error(403, '관리자 권한이 필요합니다.')

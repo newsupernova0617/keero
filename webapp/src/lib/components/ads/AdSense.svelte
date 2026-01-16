@@ -11,7 +11,7 @@
 
 	let { slot, format = 'auto', responsive = true, className = '' }: Props = $props()
 
-	let adContainer: HTMLElement
+	let adContainer = $state<HTMLElement>()
 	
 	// 환경변수로 AdSense 활성화 여부 확인 (기본값: 비활성화)
 	const isAdSenseEnabled = env.PUBLIC_ADSENSE_ENABLED === '1'
@@ -26,7 +26,7 @@
 		// AdSense 스크립트 로드
 		if (typeof window !== 'undefined' && !(window as any).adsbygoogle) {
 			const script = document.createElement('script')
-			script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX'
+			script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2995631331341713'
 			script.async = true
 			script.crossOrigin = 'anonymous'
 			document.head.appendChild(script)
@@ -47,7 +47,7 @@
 			bind:this={adContainer}
 			class="adsbygoogle"
 			style="display:block"
-			data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+			data-ad-client="ca-pub-2995631331341713"
 			data-ad-slot={slot}
 			data-ad-format={format}
 			data-full-width-responsive={responsive}
