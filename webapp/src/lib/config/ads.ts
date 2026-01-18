@@ -28,14 +28,22 @@ export const AD_CONFIG = {
     adfit: {
         enabled: true, // AdSense 미승인 시 true로 변경
         units: {
-            header: 'DAN-XXXXXXXXXXXXXXXX', // 헤더 배너 (728x90)
-            footer: 'DAN-YYYYYYYYYYYYYYYY', // 푸터 배너 (728x90)
+            // 헤더 광고
+            headerDesktop: 'DAN-AIl1kDMY7LlVY3S4', // 728x90 리더보드 (헤더 데스크톱)
+            headerMobile: 'DAN-Cb3IghrE9LSBEjZm', // 320x100 모바일 대형 배너 (헤더 모바일)
+            
+            // 푸터 광고 (헤더와 다른 유닛 사용)
+            footerDesktop: 'DAN-r7zwxqiBXJy8ONPu', // 300x250 중형 직사각형 (푸터 데스크톱, 임시)
+            footerMobile: 'DAN-r7zwxqiBXJy8ONPu', // 300x250 중형 직사각형 (푸터 모바일, 임시)
+            
+            // 기타 위치
             inFeed: 'DAN-ZZZZZZZZZZZZZZZZ', // 피드 내
             inArticle: 'DAN-AAAAAAAAAAAAAAAA', // 본문 중간
-            mobile: 'DAN-BBBBBBBBBBBBBBBB', // 모바일 배너
             sidebar: 'DAN-CCCCCCCCCCCCCCCC', // 사이드바
             mediumRectangle: 'DAN-r7zwxqiBXJy8ONPu', // 300x250 중형 직사각형
-            leaderboard: 'DAN-AIl1kDMY7LlVY3S4', // 728x90 리더보드 (데스크톱)
+            
+            // 레거시 (하위 호환성)
+            leaderboard: 'DAN-AIl1kDMY7LlVY3S4', // 728x90 리더보드
             mobileLarge: 'DAN-Cb3IghrE9LSBEjZm' // 320x100 모바일 대형 배너
         }
     }

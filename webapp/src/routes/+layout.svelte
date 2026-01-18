@@ -113,11 +113,11 @@
 	{:else if AD_CONFIG.adfit.enabled}
 		<!-- 데스크톱: 728x90 -->
 		<div class="hidden md:flex mx-auto max-w-7xl px-4 py-2 justify-center">
-			<AdFit unit={AD_CONFIG.adfit.units.leaderboard} width={728} height={90} />
+			<AdFit unit={AD_CONFIG.adfit.units.headerDesktop} width={728} height={90} />
 		</div>
 		<!-- 모바일: 320x100 -->
 		<div class="flex md:hidden justify-center px-4 py-2">
-			<AdFit unit={AD_CONFIG.adfit.units.mobileLarge} width={320} height={100} />
+			<AdFit unit={AD_CONFIG.adfit.units.headerMobile} width={320} height={100} />
 		</div>
 	{/if}
 
@@ -134,13 +134,13 @@
 			<AdPost unitId={AD_CONFIG.adpost.units.footer} width={728} height={90} />
 		</div>
 	{:else if AD_CONFIG.adfit.enabled}
-		<!-- 데스크톱: 728x90 -->
+		<!-- 데스크톱: 300x250 (임시) -->
 		<div class="hidden md:flex mx-auto max-w-7xl px-4 py-2 justify-center">
-			<AdFit unit={AD_CONFIG.adfit.units.leaderboard} width={728} height={90} />
+			<AdFit unit={AD_CONFIG.adfit.units.footerDesktop} width={300} height={250} />
 		</div>
-		<!-- 모바일: 320x100 -->
+		<!-- 모바일: 300x250 (임시) -->
 		<div class="flex md:hidden justify-center px-4 py-2">
-			<AdFit unit={AD_CONFIG.adfit.units.mobileLarge} width={320} height={100} />
+			<AdFit unit={AD_CONFIG.adfit.units.footerMobile} width={300} height={250} />
 		</div>
 	{/if}
 
