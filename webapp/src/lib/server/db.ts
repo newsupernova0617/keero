@@ -197,6 +197,9 @@ function initializeDatabase() {
 // 앱 시작 시 DB 초기화
 initializeDatabase()
 
+// 연결 테스트 및 게시물 수 확인
+testConnection()
+
 // 연결 테스트 함수
 export function testConnection() {
     try {

@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit'
 import type { Actions } from './$types'
+import { createHash } from 'crypto'
 
 // 비밀번호: keero2026
 const ADMIN_PASSWORD_HASH = '6461160bdd49a2a4d718ccd186984c2169ec09bdf42f6569c0fc9f305dc595f1'
@@ -10,8 +11,7 @@ export const actions: Actions = {
         const password = data.get('password')?.toString() || ''
         
         // SHA-256 해시 생성
-        const crypto = await import('crypto')
-        const hash = crypto.createHash('sha256').update(password).digest('hex')
+        const hash = createHash('sha256').update(password).digest('hex')
         
         console.log('🔐 Admin Login Debug:')
         console.log('  - Input password:', password)
