@@ -26,7 +26,27 @@
 							서비스 소개
 						</a>
 					</li>
-					<!-- <li>
+					<li>
+						<a href="/stats" class="text-muted-foreground transition hover:text-foreground">
+							통계
+						</a>
+					</li>
+					<li>
+						<a href="/highlights/weekly" class="text-muted-foreground transition hover:text-foreground">
+							주간 하이라이트
+						</a>
+					</li>
+					<li>
+						<a href="/best-comments" class="text-muted-foreground transition hover:text-foreground">
+							베스트 댓글
+						</a>
+					</li>
+					<li>
+						<a href="/faq" class="text-muted-foreground transition hover:text-foreground">
+							자주 묻는 질문
+						</a>
+					</li>
+					<li>
 						<a href="/privacy" class="text-muted-foreground transition hover:text-foreground">
 							개인정보처리방침
 						</a>
@@ -35,7 +55,17 @@
 						<a href="/terms" class="text-muted-foreground transition hover:text-foreground">
 							이용약관
 						</a>
-					</li> -->
+					</li>
+					<li>
+						<a href="/dmca" class="text-muted-foreground transition hover:text-foreground">
+							저작권 정책 (DMCA)
+						</a>
+					</li>
+					<li>
+						<a href="/contact" class="text-muted-foreground transition hover:text-foreground">
+							문의하기
+						</a>
+					</li>
 				</ul>
 			</div>
 
@@ -58,7 +88,7 @@
 		<Separator class="my-6" />
 
 		<div class="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
-			<p>© 2025 KEERO. All rights reserved.</p>
+			<p>© 2026 KEERO. All rights reserved.</p>
 			<p class="text-xs">
 				본 서비스는 공개된 게시글을 수집하여 제공하며, 모든 저작권은 원저작자에게 있습니다.
 			</p>

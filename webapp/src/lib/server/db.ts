@@ -1,34 +1,25 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
+/// <reference types="@cloudflare/workers-types" />
+
+import { drizzle } from 'drizzle-orm/d1'
 import * as schema from './schema'
 
-// DB 경로 (크롤러와 동일한 DB 파일 사용)
-const DB_PATH = '../data/posts.db'
-
-// SQLite 연결
-const sqlite = new Database(DB_PATH)
-
-// PRAGMA 설정 (성능 최적화)
-sqlite.pragma('journal_mode = WAL') // Write-Ahead Logging (동시 읽기/쓰기)
-sqlite.pragma('synchronous = NORMAL') // 성능과 안정성 균형
-sqlite.pragma('cache_size = -64000') // 64MB 캐시
-sqlite.pragma('temp_store = MEMORY') // 임시 테이블 메모리 사용
-sqlite.pragma('mmap_size = 268435456') // 256MB 메모리 매핑
-sqlite.pragma('busy_timeout = 5000') // 잠금 대기 5초
-
-// Drizzle ORM 초기화
-export const db = drizzle(sqlite, { schema })
-
-// 연결 테스트 함수
-export function testConnection() {
-    try {
-        const result = sqlite.prepare('SELECT COUNT(*) as count FROM posts').get() as {
-            count: number
-        }
-        console.log(`✅ DB Connected: ${result.count} posts found`)
-        return true
-    } catch (error) {
-        console.error('❌ DB Connection Error:', error)
-        return false
+// Cloudflare D1 타입 정의
+// @cloudflare/workers-types 패키지에서 제공
+declare global {
+    interface Env {
+        DB: D1Database
+        R2: R2Bucket
     }
 }
+
+// Cloudflare D1 데이터베이스
+// platform.env.DB는 wrangler.toml의 [[d1_databases]] 바인딩에서 제공됨
+export function getDB(env: Env) {
+    return drizzle(env.DB, { schema })
+}
+
+// 타입 정의
+export type DB = ReturnType<typeof getDB>
+
+// Re-export schema for convenience
+export * from './schema'

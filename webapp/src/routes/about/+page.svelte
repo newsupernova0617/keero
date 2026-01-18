@@ -1,11 +1,30 @@
 <script lang="ts">
 	import { Separator } from '$lib/components/ui/separator'
 	import { ExternalLink } from '@lucide/svelte'
+	import { getBaseUrl, SITE_NAME } from '$lib/utils/seo'
+
+	const baseUrl = getBaseUrl()
 </script>
 
 <svelte:head>
 	<title>서비스 소개 - KEERO</title>
 	<meta name="description" content="여러 커뮤니티의 재미있는 유머를 한곳에서 만나보세요." />
+	
+	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
+	<meta property="og:title" content="서비스 소개 - KEERO" />
+	<meta property="og:description" content="여러 커뮤니티의 재미있는 유머를 한곳에서 만나보세요." />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="{baseUrl}/about" />
+	<meta property="og:image" content="{baseUrl}/og-default.png" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="서비스 소개 - KEERO" />
+	<meta name="twitter:description" content="여러 커뮤니티의 재미있는 유머를 한곳에서 만나보세요." />
+	
+	<!-- Canonical -->
+	<link rel="canonical" href="{baseUrl}/about" />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-12">
@@ -112,11 +131,73 @@
 		<!-- 저작권 고지 -->
 		<section class="mb-12">
 			<h2 class="mb-4 text-2xl font-semibold">저작권 및 출처 표시</h2>
-			<div class="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
-				<p class="text-sm leading-relaxed text-muted-foreground">
+			<div class="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6">
+				<p class="mb-4 text-sm leading-relaxed text-muted-foreground">
 					본 서비스는 공개된 커뮤니티 게시글을 수집하여 제공합니다. 모든 게시글은 원본 출처가 명확히
-					표시되며, 원본 사이트로 이동할 수 있는 링크를 제공합니다. 저작권은 원저작자에게 있으며,
+					표시되며, 원본 사이트로 이동할 수 있는 링크를 제공합니다.
+				</p>
+				<p class="mb-4 text-sm leading-relaxed text-muted-foreground">
+					<strong>저작권은 원저작자에게 있으며</strong>, 본 서비스는 단순히 공개된 콘텐츠의 
+					링크와 미리보기를 제공하는 역할만 합니다.
+				</p>
+				<p class="text-sm leading-relaxed text-muted-foreground">
 					저작권자의 요청이 있을 경우 즉시 해당 콘텐츠를 삭제합니다.
+					삭제 요청은 <a href="/contact" class="text-primary hover:underline">문의하기</a> 또는 
+					<a href="mailto:keero1356@gmail.com" class="text-primary hover:underline">keero1356@gmail.com</a>으로 
+					연락해주세요.
+				</p>
+			</div>
+		</section>
+
+		<Separator class="my-8" />
+
+		<!-- 운영 정보 -->
+		<section class="mb-12">
+			<h2 class="mb-4 text-2xl font-semibold">운영 정보</h2>
+			<div class="rounded-lg border bg-card p-6">
+				<div class="space-y-4 text-sm text-muted-foreground">
+					<div class="flex items-start gap-3">
+						<span class="font-medium text-foreground w-24">서비스명:</span>
+						<span>KEERO (키로)</span>
+					</div>
+					<div class="flex items-start gap-3">
+						<span class="font-medium text-foreground w-24">운영 주체:</span>
+						<span>개인 운영 서비스</span>
+					</div>
+					<div class="flex items-start gap-3">
+						<span class="font-medium text-foreground w-24">서비스 시작:</span>
+						<span>2025년 12월</span>
+					</div>
+					<div class="flex items-start gap-3">
+						<span class="font-medium text-foreground w-24">업데이트:</span>
+						<span>10분마다 자동 업데이트</span>
+					</div>
+					<div class="flex items-start gap-3">
+						<span class="font-medium text-foreground w-24">문의:</span>
+						<a href="mailto:keero1356@gmail.com" class="text-primary hover:underline">
+							keero1356@gmail.com
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<Separator class="my-8" />
+
+		<!-- 서비스 목표 -->
+		<section class="mb-12">
+			<h2 class="mb-4 text-2xl font-semibold">서비스 목표</h2>
+			<div class="space-y-4 text-muted-foreground">
+				<p class="leading-relaxed">
+					KEERO는 여러 커뮤니티에 흩어진 재미있는 유머 콘텐츠를 한곳에 모아 
+					사용자들이 편리하게 즐길 수 있도록 하는 것을 목표로 합니다.
+				</p>
+				<p class="leading-relaxed">
+					각 커뮤니티를 일일이 방문하지 않고도 최신 유머 게시글을 확인할 수 있으며,
+					댓글과 좋아요 기능을 통해 다른 사용자들과 소통할 수 있습니다.
+				</p>
+				<p class="leading-relaxed">
+					모든 콘텐츠는 원본 출처를 명확히 표시하며, 원저작자의 권리를 존중합니다.
 				</p>
 			</div>
 		</section>
@@ -143,7 +224,7 @@
 
 		<!-- 마지막 업데이트 -->
 		<div class="mt-12 text-center text-sm text-muted-foreground">
-			마지막 업데이트: 2025년 12월 30일
+			마지막 업데이트: 2026년 1월 12일
 		</div>
 	</div>
 </div>

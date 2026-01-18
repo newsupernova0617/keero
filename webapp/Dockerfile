@@ -13,20 +13,24 @@ COPY . .
 ARG PUBLIC_SUPABASE_URL
 ARG PUBLIC_SUPABASE_ANON_KEY
 ARG R2_PUBLIC_URL
+# 환경 변수 설정 (필요한 경우)
+ARG PUBLIC_ADSENSE_ENABLED=1
+ENV PUBLIC_ADSENSE_ENABLED=$PUBLIC_ADSENSE_ENABLED
+
 
 # 환경 변수를 ENV로 설정 (빌드 시점에 사용)
 ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL
 ENV PUBLIC_SUPABASE_ANON_KEY=$PUBLIC_SUPABASE_ANON_KEY
 ENV R2_PUBLIC_URL=$R2_PUBLIC_URL
 
-# 빌드
-RUN npm run build
+# 데이터 디렉토리 생성 (빌드 전에 생성해야 함)
+RUN mkdir -p data
+
+# 빌드 전 동기화 및 빌드
+RUN npx svelte-kit sync && npm run build
 
 # 프로덕션 의존성만 설치
 RUN npm prune --production
-
-# 데이터 디렉토리 생성
-RUN mkdir -p /data
 
 # 포트 노출
 EXPOSE 3000

@@ -1,10 +1,29 @@
 <script lang="ts">
 	import { Separator } from '$lib/components/ui/separator'
+	import { getBaseUrl, SITE_NAME } from '$lib/utils/seo'
+
+	const baseUrl = getBaseUrl()
 </script>
 
 <svelte:head>
 	<title>개인정보처리방침 - KEERO</title>
 	<meta name="description" content="KEERO 개인정보처리방침" />
+	
+	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
+	<meta property="og:title" content="개인정보처리방침 - KEERO" />
+	<meta property="og:description" content="KEERO 개인정보처리방침" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="{baseUrl}/privacy" />
+	<meta property="og:image" content="{baseUrl}/og-default.png" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="개인정보처리방침 - KEERO" />
+	<meta name="twitter:description" content="KEERO 개인정보처리방침" />
+	
+	<!-- Canonical -->
+	<link rel="canonical" href="{baseUrl}/privacy" />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-12">
@@ -182,8 +201,8 @@
 				<div class="space-y-2 text-sm">
 					<p>
 						<strong class="text-foreground">이메일:</strong>
-						<a href="mailto:privacy@example.com" class="ml-2 text-primary hover:underline">
-							privacy@example.com
+						<a href="mailto:keero1356@gmail.com" class="ml-2 text-primary hover:underline">
+							keero1356@gmail.com
 						</a>
 					</p>
 				</div>
@@ -204,7 +223,7 @@
 		<!-- 시행일 -->
 		<div class="mt-12 rounded-lg border bg-muted/50 p-4 text-center">
 			<p class="text-sm text-muted-foreground">
-				<strong>시행일:</strong> 2025년 1월 1일
+				<strong>시행일:</strong> 2026년 1월 1일
 			</p>
 		</div>
 	</div>

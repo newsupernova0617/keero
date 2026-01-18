@@ -1,11 +1,11 @@
 import { requireAdmin } from '$lib/server/auth'
-import { db } from '$lib/server/db'
 import { reports, users, posts, comments } from '$lib/server/schema'
 import { eq, desc, sql } from 'drizzle-orm'
 import { fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async (event) => {
+    const db = event.locals.db
 	await requireAdmin(event)
 
 	// 모든 신고 조회
@@ -41,7 +41,8 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	resolve: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 		const { user } = await event.locals.safeGetSession()
 
 		const formData = await event.request.formData()
@@ -71,7 +72,8 @@ export const actions: Actions = {
 	},
 
 	reject: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 		const { user } = await event.locals.safeGetSession()
 
 		const formData = await event.request.formData()
@@ -101,7 +103,8 @@ export const actions: Actions = {
 	},
 
 	deleteContent: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 		const { user } = await event.locals.safeGetSession()
 
 		const formData = await event.request.formData()

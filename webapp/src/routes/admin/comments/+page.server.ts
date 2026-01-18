@@ -1,11 +1,11 @@
 import { requireAdmin } from '$lib/server/auth'
-import { db } from '$lib/server/db'
 import { comments, users, posts } from '$lib/server/schema'
 import { eq, desc } from 'drizzle-orm'
 import { fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async (event) => {
+    const db = event.locals.db
 	await requireAdmin(event)
 
 	// 모든 댓글 조회 (사용자 및 게시글 정보 포함)
@@ -34,6 +34,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	delete: async (event) => {
+		const db = event.locals.db
 		await requireAdmin(event)
 
 		const formData = await event.request.formData()

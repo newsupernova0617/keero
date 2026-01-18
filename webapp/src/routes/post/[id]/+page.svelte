@@ -15,6 +15,7 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	import Comment from '$lib/components/Comment.svelte'
 	import { ArrowLeft, ExternalLink, ThumbsUp, Share2, MessageSquare } from '@lucide/svelte'
 	import { onMount } from 'svelte'
+	import { getBaseUrl, getFullUrl, getDefaultOgImage, SITE_NAME } from '$lib/utils/seo'
 
 	let { data }: { data: PageData } = $props()
 	let { post, comments, session, currentUserId, likeCount, userLiked } = $derived(data)
@@ -66,7 +67,9 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 		// HTML sanitize - placeholder 태그 제거하고 텍스트만 남김
 		let html = DOMPurify.sanitize(post.content_html, {
 			ALLOWED_TAGS: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'a', 'div', 'span', 'blockquote', 'ul', 'ol', 'li', 'table', 'tbody', 'tr', 'td'],
-			ALLOWED_ATTR: ['href', 'alt', 'title', 'class']
+			ALLOWED_ATTR: ['href', 'alt', 'title', 'class'],
+			// Security: Block javascript: URLs and other dangerous schemes
+			ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 		})
 		
 		return html
@@ -182,12 +185,19 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<meta name="keywords" content="유머, {post.site_name}, 웃긴글, 재미" />
 
 	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:title" content={post.title} />
 	<meta property="og:description" content={post.content?.substring(0, 160) || post.title} />
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://yourdomain.com/post/{post.id}" />
+	<meta property="og:url" content={getFullUrl(`/post/${post.id}`)} />
 	{#if images.length > 0}
 		<meta property="og:image" content={images[0].r2_url} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+	{:else}
+		<meta property="og:image" content={getDefaultOgImage()} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
 	{/if}
 	<meta property="article:published_time" content={post.created_at} />
 	<meta property="article:section" content="유머" />
@@ -198,18 +208,50 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<meta name="twitter:description" content={post.content?.substring(0, 160) || post.title} />
 	{#if images.length > 0}
 		<meta name="twitter:image" content={images[0].r2_url} />
+	{:else}
+		<meta name="twitter:image" content={getDefaultOgImage()} />
 	{/if}
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="https://yourdomain.com/post/{post.id}" />
+	<link rel="canonical" href={getFullUrl(`/post/${post.id}`)} />
+	
+	<!-- JSON-LD 구조화 데이터 -->
+	<script type="application/ld+json">
+		{JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "Article",
+			"headline": post.title,
+			"description": post.content?.substring(0, 160) || post.title,
+			"image": images.length > 0 ? images[0].r2_url : getDefaultOgImage(),
+			"url": getFullUrl(`/post/${post.id}`),
+			"datePublished": post.created_at,
+			"dateModified": post.crawled_at,
+			"author": {
+				"@type": "Organization",
+				"name": post.site_name
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": SITE_NAME,
+				"logo": {
+					"@type": "ImageObject",
+					"url": getFullUrl("/logo.png")
+				}
+			},
+			"articleSection": "유머"
+		})}
+	</script>
 </svelte:head>
 
-<div class="mx-auto max-w-4xl space-y-6">
-	<!-- 뒤로 가기 -->
-	<Button href="/" variant="ghost" size="sm" class="gap-2">
-		<ArrowLeft class="h-4 w-4" />
-		목록으로
-	</Button>
+<div class="mx-auto max-w-7xl">
+	<div class="flex gap-6">
+		<!-- 메인 콘텐츠 -->
+		<div class="flex-1 min-w-0 space-y-6">
+			<!-- 뒤로 가기 -->
+			<Button href="/" variant="ghost" size="sm" class="gap-2">
+				<ArrowLeft class="h-4 w-4" />
+				목록으로
+			</Button>
 
 	<!-- 게시글 카드 -->
 	<Card.Root class="overflow-hidden">
@@ -332,13 +374,6 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 	<!-- 광고 영역 -->
 	<div class="py-4">
 		<div class="flex flex-col items-center gap-3">
-			<!-- 광고 라벨 -->
-			<div class="flex items-center gap-2">
-				<div class="h-px w-12 bg-border"></div>
-				<span class="text-xs font-medium text-muted-foreground">Advertisement</span>
-				<div class="h-px w-12 bg-border"></div>
-			</div>
-			
 			<!-- 광고 -->
 			{#if AD_CONFIG.adsense.enabled}
 				<AdSense slot={AD_CONFIG.adsense.slots.inArticle} format="horizontal" />
@@ -347,6 +382,15 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 			{/if}
 		</div>
 	</div>
+
+	<!-- 300x250 중형 광고 (본문 하단) -->
+	{#if AD_CONFIG.adfit.enabled}
+		<div class="py-6 flex justify-center">
+			<div class="flex flex-col items-center gap-2">
+				<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
+			</div>
+		</div>
+	{/if}
 
 	<!-- 댓글 섹션 -->
 	<Card.Root id="comments">
@@ -448,4 +492,15 @@ import AdFit from '$lib/components/ads/AdFit.svelte'
 {/if}
 		</Card.Content>
 	</Card.Root>
+		</div>
+		
+		<!-- 사이드바 (데스크톱만) -->
+		{#if AD_CONFIG.adfit.enabled}
+			<aside class="hidden xl:block w-80 sticky top-20 self-start space-y-4">
+				<div class="flex flex-col items-center gap-2 rounded-lg border bg-card p-4">
+					<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
+				</div>
+			</aside>
+		{/if}
+	</div>
 </div>

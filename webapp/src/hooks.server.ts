@@ -25,6 +25,18 @@ export const handle: Handle = async ({ event, resolve }) => {
     })
 
     /**
+     * Initialize D1 database from Cloudflare platform bindings
+     */
+    if (event.platform?.env?.DB) {
+        const { getDB } = await import('$lib/server/db')
+        event.locals.db = getDB(event.platform.env)
+        // console.log('✅ D1 Database initialized from platform.env.DB');
+    } else {
+        console.error('❌ D1 Database binding (platform.env.DB) is missing!');
+        // 로컬 개발 환경이 아니면서 DB가 없는 경우 500 에러 방지를 위해 핸들링 필요할 수 있음
+    }
+
+    /**
      * Unlike `supabase.auth.getSession()`, which returns the session _without_
      * validating the JWT, this function also calls `getUser()` to validate the
      * JWT before returning the session.
@@ -65,7 +77,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         return { session: newSession, user }
     }
 
-    return resolve(event, {
+    const response = await resolve(event, {
         filterSerializedResponseHeaders(name) {
             /**
              * Supabase libraries use the `content-range` and `x-supabase-api-version`
@@ -74,4 +86,44 @@ export const handle: Handle = async ({ event, resolve }) => {
             return name === 'content-range' || name === 'x-supabase-api-version'
         }
     })
+
+    // Static file caching (리소스 절약)
+    const path = event.url.pathname
+    if (path.startsWith('/_app/') || path.startsWith('/images/') || path.startsWith('/fonts/')) {
+        // 빌드된 정적 파일: 1년 캐싱
+        response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    } else if (path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf)$/)) {
+        // 이미지/폰트: 1주일 캐싱
+        response.headers.set('Cache-Control', 'public, max-age=604800')
+    }
+
+    // Security: Add security headers to fix OWASP ZAP findings
+    // CSP: Prevents XSS attacks
+    response.headers.set(
+        'Content-Security-Policy',
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://t1.daumcdn.net; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "img-src 'self' data: https: blob:; " +
+        "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com https://display.ad.daum.net https://*.daumcdn.net https://*.onkakao.net; " +
+        "frame-src 'self' https://www.google.com https://t1.daumcdn.net https://*.daumcdn.net; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "form-action 'self';"
+    )
+
+    // X-Frame-Options: Prevents clickjacking
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+
+    // X-Content-Type-Options: Prevents MIME type sniffing
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+
+    // Referrer-Policy: Controls referrer information
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+    // Permissions-Policy: Controls browser features
+    response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+
+    return response
 }

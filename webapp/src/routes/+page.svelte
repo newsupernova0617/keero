@@ -2,13 +2,16 @@
 	import type { PageData } from './$types'
 	import * as Card from '$lib/components/ui/card'
 	import { Badge } from '$lib/components/ui/badge'
+	import { Button } from '$lib/components/ui/button'
 	import AdSense from '$lib/components/ads/AdSense.svelte'
 	import AdPost from '$lib/components/ads/AdPost.svelte'
+	import AdFit from '$lib/components/ads/AdFit.svelte'
 	import { AD_CONFIG, AD_RULES } from '$lib/config/ads'
 	// import SiteFilter from '$lib/components/SiteFilter.svelte'
 	import PostCardSkeleton from '$lib/components/PostCardSkeleton.svelte'
 	import EmptyState from '$lib/components/EmptyState.svelte'
 	import { Image } from '@lucide/svelte'
+	import { getBaseUrl, getDefaultOgImage, SITE_NAME } from '$lib/utils/seo'
 
 	let { data }: { data: PageData } = $props()
 	
@@ -26,10 +29,13 @@
 	// function handleFilterChange(site: string) {
 	// 	selectedSite = site
 	// }
+	
+	const baseUrl = getBaseUrl()
+	const ogImage = getDefaultOgImage()
 </script>
 
 <svelte:head>
-	<title>유머 게시판 - 재미있는 유머, 웃긴 글 모음</title>
+	<title>KEERO - 재미있는 유머, 웃긴 글 모음</title>
 	<meta
 		name="description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요. 매일 업데이트되는 최신 유머 게시글."
@@ -37,14 +43,17 @@
 	<meta name="keywords" content="유머, 웃긴글, 재미, 커뮤니티, FMKorea, 루리웹, 베스트글" />
 
 	<!-- Open Graph -->
+	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:title" content="유머 게시판 - 재미있는 유머, 웃긴 글 모음" />
 	<meta
 		property="og:description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://yourdomain.com/" />
-	<meta property="og:image" content="https://yourdomain.com/og-image.png" />
+	<meta property="og:url" content={baseUrl} />
+	<meta property="og:image" content={ogImage} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
@@ -53,10 +62,26 @@
 		name="twitter:description"
 		content="FMKorea, 루리웹 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요."
 	/>
-	<meta name="twitter:image" content="https://yourdomain.com/og-image.png" />
+	<meta name="twitter:image" content={ogImage} />
 
 	<!-- 추가 SEO -->
-	<link rel="canonical" href="https://yourdomain.com/" />
+	<link rel="canonical" href={baseUrl} />
+	
+	<!-- JSON-LD 구조화 데이터 -->
+	<script type="application/ld+json">
+		{JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			"name": SITE_NAME,
+			"url": baseUrl,
+			"description": "FMKorea, 루리웹, 오늘의유머 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요.",
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": `${baseUrl}/search?q={search_term_string}`,
+				"query-input": "required name=search_term_string"
+			}
+		})}
+	</script>
 </svelte:head>
 
 <div class="space-y-6">
@@ -75,6 +100,35 @@
 
 	<!-- Site Filter -->
 	<!-- <SiteFilter onFilterChange={handleFilterChange} /> -->
+
+	<!-- 하이라이트 배너 -->
+	<div class="grid gap-4 md:grid-cols-2">
+		<a
+			href="/highlights/weekly"
+			class="group block rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+		>
+			<div class="mb-2 text-2xl">📅</div>
+			<h2 class="mb-2 text-xl font-bold transition-colors group-hover:text-primary">
+				주간 하이라이트
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				이번 주 가장 인기있었던 TOP 10 게시글과 베스트 댓글을 확인하세요
+			</p>
+		</a>
+
+		<a
+			href="/best-comments"
+			class="group block rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+		>
+			<div class="mb-2 text-2xl">💬</div>
+			<h2 class="mb-2 text-xl font-bold transition-colors group-hover:text-primary">
+				베스트 댓글
+			</h2>
+			<p class="text-sm text-muted-foreground">
+				커뮤니티에서 가장 많은 사랑을 받은 재치있는 댓글 모음
+			</p>
+		</a>
+	</div>
 
 	<!-- Posts Grid -->
 	{#if isLoading}
@@ -133,15 +187,68 @@
 
 				<!-- 피드 내 광고 (N개마다) -->
 				{#if (index + 1) % AD_RULES.feedInterval === 0 && index < filteredPosts.length - 1}
-					<div class="col-span-full">
+					<div class="col-span-full flex justify-center py-6">
 						{#if AD_CONFIG.adsense.enabled}
 							<AdSense slot={AD_CONFIG.adsense.slots.inFeed} format="auto" />
 						{:else if AD_CONFIG.adpost.enabled}
 							<AdPost unitId={AD_CONFIG.adpost.units.inFeed} width={728} height={90} />
+						{:else if AD_CONFIG.adfit.enabled}
+							<AdFit unit={AD_CONFIG.adfit.units.mediumRectangle} width={300} height={250} />
 						{/if}
 					</div>
 				{/if}
 			{/each}
 		</div>
+
+	<!-- 페이지네이션 -->
+	{#if data.pagination.totalPages > 1}
+		<div class="mt-8 flex justify-center gap-2">
+			<!-- 이전 페이지 -->
+			{#if data.pagination.hasPrev}
+				<Button 
+					href="/?page={data.pagination.page - 1}" 
+					variant="outline"
+					size="sm"
+				>
+					이전
+				</Button>
+			{/if}
+
+			<!-- 페이지 번호들 -->
+			{#each Array.from({ length: Math.min(5, data.pagination.totalPages) }, (_, i) => {
+				const totalPages = data.pagination.totalPages;
+				const currentPage = data.pagination.page;
+				let startPage = Math.max(1, currentPage - 2);
+				let endPage = Math.min(totalPages, startPage + 4);
+				
+				if (endPage - startPage < 4) {
+					startPage = Math.max(1, endPage - 4);
+				}
+				
+				return startPage + i;
+			}) as pageNum}
+				{#if pageNum <= data.pagination.totalPages}
+					<Button
+						href="/?page={pageNum}"
+						variant={pageNum === data.pagination.page ? "default" : "outline"}
+						size="sm"
+					>
+						{pageNum}
+					</Button>
+				{/if}
+			{/each}
+
+			<!-- 다음 페이지 -->
+			{#if data.pagination.hasNext}
+				<Button 
+					href="/?page={data.pagination.page + 1}" 
+					variant="outline"
+					size="sm"
+				>
+					다음
+				</Button>
+			{/if}
+		</div>
 	{/if}
+{/if}
 </div>

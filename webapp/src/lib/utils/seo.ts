@@ -95,3 +95,31 @@ export function generateSitemapEntry(config: {
 		priority: config.priority || 0.5
 	}
 }
+
+/**
+ * 기본 URL 관리
+ */
+import { env } from '$env/dynamic/public'
+
+export function getBaseUrl(): string {
+    let baseUrl = env.PUBLIC_BASE_URL || 'https://keerosveltekit-production.up.railway.app'
+    // https:// 프로토콜이 없으면 자동 추가
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = `https://${baseUrl}`
+    }
+    return baseUrl
+}
+
+export function getFullUrl(path: string): string {
+    const baseUrl = getBaseUrl()
+    const cleanPath = path.startsWith('/') ? path : `/${path}`
+    return `${baseUrl}${cleanPath}`
+}
+
+export function getDefaultOgImage(): string {
+    return getFullUrl('/og-default.png')
+}
+
+export const SITE_NAME = 'KEERO 유머 게시판'
+export const SITE_DESCRIPTION = 'FMKorea, 루리웹, 오늘의유머 등에서 엄선한 재미있는 유머와 웃긴 글을 한곳에서 만나보세요. 매일 업데이트되는 최신 유머 게시글.'
+

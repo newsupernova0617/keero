@@ -703,16 +703,16 @@ class DatabaseManager:
         elif img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # 이미지 크기 제한 (최대 2000px)
-        max_dimension = 2000
+        # 이미지 크기 제한 (최대 480px - 균형잡힌 최적화)
+        max_dimension = 480
         if max(img.size) > max_dimension:
             ratio = max_dimension / max(img.size)
             new_size = tuple(int(dim * ratio) for dim in img.size)
             img = img.resize(new_size, PILImage.Resampling.LANCZOS)
         
-        # WebP로 변환
+        # WebP로 변환 (품질 40% - 균형잡힌 최적화)
         output = io.BytesIO()
-        img.save(output, format='WEBP', quality=85, method=6)
+        img.save(output, format='WEBP', quality=40, method=6)
         optimized_data = output.getvalue()
         optimized_size = len(optimized_data)
         
@@ -759,8 +759,8 @@ class DatabaseManager:
             height = int(video_info['height'])
             duration = float(probe['format'].get('duration', 0))
             
-            # 해상도 제한 (최대 1080p)
-            max_height = 1080
+            # 해상도 제한 (최대 360p - 극한 압축)
+            max_height = 360
             if height > max_height:
                 scale_ratio = max_height / height
                 new_width = int(width * scale_ratio)
@@ -772,17 +772,18 @@ class DatabaseManager:
             else:
                 scale_filter = None
             
-            # ffmpeg 명령 구성 (subprocess 사용)
+            # ffmpeg 명령 구성 (subprocess 사용) - 균형잡힌 최적화
             cmd = [
                 'ffmpeg',
                 '-i', input_path,
                 '-vcodec', 'libvpx-vp9',
-                '-crf', '31',
+                '-crf', '52',  # 균형잡힌 최적화 (50 -> 52)
                 '-b:v', '0',
-                '-cpu-used', '4',
-                '-row-mt', '1',
-                '-tile-columns', '2',
-                '-threads', '4',
+                '-maxrate', '300k',  # 최대 비트레이트 제한 (400k -> 300k)
+                '-bufsize', '800k',
+                '-r', '20',  # 20fps로 제한
+                '-cpu-used', '8',      # 인코딩 속도 최대화 (CPU 부하 ↓)
+                '-threads', '1',       # CPU 코어 1개만 사용 (e2-micro 최적화)
             ]
             
             # 해상도 제한이 필요한 경우

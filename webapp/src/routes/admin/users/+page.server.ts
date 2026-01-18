@@ -1,8 +1,8 @@
-import { db } from '$lib/server/db'
 import { users, type User } from '$lib/server/schema'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
     let allUsers: User[] = []
 
     try {

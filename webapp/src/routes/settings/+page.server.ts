@@ -1,11 +1,11 @@
 import { redirect, fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
-import { db } from '$lib/server/db'
 import { users } from '$lib/server/schema'
 import { eq } from 'drizzle-orm'
 
-export const load: PageServerLoad = async ({ locals: { safeGetSession } }) => {
-	const { session, user } = await safeGetSession()
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
+	const { session, user } = await locals.safeGetSession()
 
 	if (!session) {
 		throw redirect(303, '/auth/login')
@@ -25,8 +25,9 @@ export const load: PageServerLoad = async ({ locals: { safeGetSession } }) => {
 }
 
 export const actions: Actions = {
-	updateProfile: async ({ request, locals: { safeGetSession } }) => {
-		const { session, user } = await safeGetSession()
+	updateProfile: async ({ request, locals }) => {
+		const db = locals.db
+		const { session, user } = await locals.safeGetSession()
 
 		if (!session || !user) {
 			return fail(401, { error: '로그인이 필요합니다.' })

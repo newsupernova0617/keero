@@ -4,7 +4,7 @@
 	import * as Table from '$lib/components/ui/table'
 	import { Badge } from '$lib/components/ui/badge'
 	import { Button } from '$lib/components/ui/button'
-	import { Database, Trash2, RefreshCw, AlertTriangle } from '@lucide/svelte'
+	import { Database, Trash2, RefreshCw, AlertTriangle, Table2, Code, HardDrive, Activity, FileSearch } from '@lucide/svelte'
 	import { enhance } from '$app/forms'
 
 	let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -32,6 +32,64 @@
 			<p class="text-sm text-green-800 dark:text-green-200">{form.message}</p>
 		</div>
 	{/if}
+
+	<!-- 빠른 액션 -->
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>빠른 액션</Card.Title>
+			<Card.Description>데이터베이스 관리 도구</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<div class="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+				<Button href="/admin/database/tables" variant="outline" class="h-auto flex-col items-start p-4">
+					<div class="flex items-center gap-2 mb-2">
+						<Table2 class="h-5 w-5" />
+						<span class="font-semibold">테이블 관리</span>
+					</div>
+					<p class="text-sm text-muted-foreground text-left">
+						모든 테이블 조회 및 CRUD 작업
+					</p>
+				</Button>
+				<Button href="/admin/database/query" variant="outline" class="h-auto flex-col items-start p-4">
+					<div class="flex items-center gap-2 mb-2">
+						<Code class="h-5 w-5" />
+						<span class="font-semibold">SQL 쿼리</span>
+					</div>
+					<p class="text-sm text-muted-foreground text-left">
+						직접 SQL 쿼리 실행
+					</p>
+				</Button>
+				<Button href="/admin/database/backup" variant="outline" class="h-auto flex-col items-start p-4">
+					<div class="flex items-center gap-2 mb-2">
+						<HardDrive class="h-5 w-5" />
+						<span class="font-semibold">백업 관리</span>
+					</div>
+					<p class="text-sm text-muted-foreground text-left">
+						데이터베이스 백업 및 복원
+					</p>
+				</Button>
+				<Button href="/admin/database/monitor" variant="outline" class="h-auto flex-col items-start p-4">
+					<div class="flex items-center gap-2 mb-2">
+						<Activity class="h-5 w-5" />
+						<span class="font-semibold">성능 모니터링</span>
+					</div>
+					<p class="text-sm text-muted-foreground text-left">
+						DB 성능 및 최적화
+					</p>
+				</Button>
+				<Button href="/admin/database/logs" variant="outline" class="h-auto flex-col items-start p-4">
+					<div class="flex items-center gap-2 mb-2">
+						<FileSearch class="h-5 w-5" />
+						<span class="font-semibold">감사 로그</span>
+					</div>
+					<p class="text-sm text-muted-foreground text-left">
+						변경 이력 조회
+					</p>
+				</Button>
+			</div>
+		</Card.Content>
+	</Card.Root>
+
 
 	<!-- 통계 카드 -->
 	<div class="grid gap-4 md:grid-cols-3">

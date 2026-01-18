@@ -1,10 +1,10 @@
 import { requireAdmin } from '$lib/server/auth'
-import { db } from '$lib/server/db'
 import { posts, comments, users, likes, bookmarks } from '$lib/server/schema'
 import { sql, desc, count } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async (event) => {
+    const db = event.locals.db
 	await requireAdmin(event)
 
 	// 사이트별 게시글 통계
