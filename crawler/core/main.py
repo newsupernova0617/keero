@@ -32,18 +32,15 @@ logger = setup_logging(
 logger = logging.getLogger(__name__)
 
 
-def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int = None):
+def crawl_site(site_key: str, site_config: dict, db, scraper: "Scraper", limit: int = None):
     """
     단일 사이트 크롤링 (Early Stop + Batch Commit 지원)
-
-    Note: 이 함수는 한 번에 하나의 사이트만 처리하는 헬퍼 함수입니다.
-          다중 사이트 크롤링은 run_crawler()에서 이 함수를 반복 호출하여 구현됩니다.
 
     Args:
         site_key: 사이트 식별자
         site_config: 사이트 설정
         db: DatabaseManager 인스턴스
-        scraper_class: Scraper 클래스
+        scraper: Scraper 인스턴스 (이미 초기화됨)
         limit: 크롤링할 최대 게시글 수 (미니테스트용, None이면 제한 없음)
 
     Returns:
@@ -54,18 +51,6 @@ def crawl_site(site_key: str, site_config: dict, db, scraper_class, limit: int =
 
     logger.info(f"=== Crawling {site_key} ===" + (f" (limit: {limit} posts)" if limit else ""))
 
-    # User-Agent 랜덤 선택 (봇 차단 방지)
-    user_agent = random.choice(Config.USER_AGENTS)
-    logger.debug(f"Using User-Agent: {user_agent[:50]}...")
-
-    # Scraper 초기화 (사이트별 선택자 사용)
-    scraper = scraper_class(
-        base_url=site_config["base_url"],
-        list_url=site_config["list_url"],
-        selectors=site_config["selectors"],
-        user_agent=user_agent,
-        use_playwright=site_config.get("use_playwright", False),  # Playwright 사용 여부
-    )
 
     stats = {
         "new_posts": 0,
@@ -349,6 +334,7 @@ def run_crawler(site_filter=None, limit=None):
             db = APIStorageManager(
                 api_url=Config.API_MODE["api_url"],
                 api_key=Config.API_MODE["api_key"],
+                r2_config=Config.R2_CONFIG,
                 timeout=Config.API_MODE["timeout"]
             )
             
@@ -395,19 +381,32 @@ def run_crawler(site_filter=None, limit=None):
                 continue
 
             total_stats["sites"] += 1
-            stats = crawl_site(site_key, site_config, db, Scraper, limit=limit)
-
-            total_stats["new_posts"] += stats["new_posts"]
-            total_stats["duplicates"] += stats["duplicates"]
-            total_stats["images_saved"] += stats["images_saved"]
-            total_stats["failed"] += stats["failed"]
-
-            logger.info(
-                f"Site {site_key} completed: {stats['new_posts']} new, "
-                f"{stats['duplicates']} duplicates, "
-                f"{stats['failed']} failed, {stats['images_saved']} images"
-                + (" (early stopped)" if stats["early_stopped"] else "")
+            
+            # Scraper 인스턴스 생명주기 관리
+            scraper_instance = Scraper(
+                base_url=site_config["base_url"],
+                list_url=site_config["list_url"],
+                selectors=site_config["selectors"],
+                use_playwright=site_config.get("use_playwright", False),
             )
+            
+            try:
+                # Scraper 인스턴스를 직접 전달
+                stats = crawl_site(site_key, site_config, db, scraper_instance, limit=limit)
+
+                total_stats["new_posts"] += stats["new_posts"]
+                total_stats["duplicates"] += stats["duplicates"]
+                total_stats["images_saved"] += stats["images_saved"]
+                total_stats["failed"] += stats["failed"]
+
+                logger.info(
+                    f"Site {site_key} completed: {stats['new_posts']} new, "
+                    f"{stats['duplicates']} duplicates, "
+                    f"{stats['failed']} failed, {stats['images_saved']} images"
+                    + (" (early stopped)" if stats["early_stopped"] else "")
+                )
+            finally:
+                scraper_instance.close()  # 브라우저 자원 해제 중요!
 
         logger.info(
             f"Crawler completed: {total_stats['sites']} sites, "

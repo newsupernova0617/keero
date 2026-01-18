@@ -782,10 +782,8 @@ class DatabaseManager:
                 '-maxrate', '300k',  # 최대 비트레이트 제한 (400k -> 300k)
                 '-bufsize', '800k',
                 '-r', '20',  # 20fps로 제한
-                '-cpu-used', '5',
-                '-row-mt', '1',
-                '-tile-columns', '2',
-                '-threads', '4',
+                '-cpu-used', '8',      # 인코딩 속도 최대화 (CPU 부하 ↓)
+                '-threads', '1',       # CPU 코어 1개만 사용 (e2-micro 최적화)
             ]
             
             # 해상도 제한이 필요한 경우

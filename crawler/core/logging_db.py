@@ -106,9 +106,13 @@ class APILogHandler(logging.Handler):
         self.flush_interval = flush_interval
         self.buffer: List[Dict] = []
         self.last_flush_time = time.time()
+        self._is_flushing = False
 
     def emit(self, record: logging.LogRecord):
         """로그를 버퍼에 추가하고 조건에 따라 전송"""
+        if self._is_flushing:
+            return  # 전송 중 발생하는 로그는 무시 (무한 루프 방지)
+
         try:
             # 예외 정보 포맷팅
             exc_text = None
@@ -146,14 +150,18 @@ class APILogHandler(logging.Handler):
 
     def flush(self):
         """버퍼의 로그를 API로 전송"""
-        if self.buffer:
+        if self.buffer and not self._is_flushing:
+            self._is_flushing = True
             try:
                 self.api_client.save_logs(self.buffer)
                 self.buffer.clear()
                 self.last_flush_time = time.time()
             except Exception as e:
                 # 로그 전송 실패는 무시 (무한 루프 방지)
-                print(f"Failed to send logs via API: {e}")
+                # print 호출이 다시 logging을 유발하여 무한 루프가 생기지 않도록 주의
+                pass
+            finally:
+                self._is_flushing = False
 
     def close(self):
         """핸들러 종료 시 남은 로그 전송"""
