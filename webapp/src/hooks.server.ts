@@ -75,6 +75,16 @@ export const handle: Handle = async ({ event, resolve }) => {
         }
     })
 
+    // Static file caching (리소스 절약)
+    const path = event.url.pathname
+    if (path.startsWith('/_app/') || path.startsWith('/images/') || path.startsWith('/fonts/')) {
+        // 빌드된 정적 파일: 1년 캐싱
+        response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    } else if (path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf)$/)) {
+        // 이미지/폰트: 1주일 캐싱
+        response.headers.set('Cache-Control', 'public, max-age=604800')
+    }
+
     // Security: Add security headers to fix OWASP ZAP findings
     // CSP: Prevents XSS attacks
     response.headers.set(

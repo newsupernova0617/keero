@@ -106,9 +106,23 @@ class Scraper:
             from playwright.sync_api import sync_playwright
             
             with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--disable-gpu',              # GPU 비활성화 (서버 환경)
+                        '--disable-dev-shm-usage',    # /dev/shm 사용 안함 (메모리 절약)
+                        '--disable-setuid-sandbox',   # 샌드박스 최적화
+                        '--no-sandbox',               # 샌드박스 비활성화 (컨테이너 환경)
+                        '--disable-web-security',     # CORS 우회
+                        '--disable-features=IsolateOrigins,site-per-process',  # 프로세스 격리 비활성화
+                        '--disable-blink-features=AutomationControlled'  # 봇 감지 우회
+                    ]
+                )
                 context = browser.new_context(
-                    user_agent=self.user_agent
+                    user_agent=self.user_agent,
+                    viewport={'width': 1280, 'height': 720},  # 고정 뷰포트 (메모리 절약)
+                    java_script_enabled=True,
+                    bypass_csp=True  # CSP 우회
                 )
                 page = context.new_page()
                 
