@@ -80,7 +80,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     response.headers.set(
         'Content-Security-Policy',
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://www.googletagmanager.com; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://t1.daumcdn.net; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob:; " +
