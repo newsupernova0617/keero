@@ -30,6 +30,10 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (event.platform?.env?.DB) {
         const { getDB } = await import('$lib/server/db')
         event.locals.db = getDB(event.platform.env)
+        // console.log('✅ D1 Database initialized from platform.env.DB');
+    } else {
+        console.error('❌ D1 Database binding (platform.env.DB) is missing!');
+        // 로컬 개발 환경이 아니면서 DB가 없는 경우 500 에러 방지를 위해 핸들링 필요할 수 있음
     }
 
     /**
