@@ -7,14 +7,33 @@ import { dirname } from 'path'
 // DB 경로 (환경 변수로 설정 가능, Railway volume 기본값: /data/posts.db)
 const DB_PATH = process.env.DATABASE_PATH || '/data/posts.db'
 
+console.log('🔍 SQLite Connection Debug Info:')
+console.log('  - DB_PATH:', DB_PATH)
+console.log('  - DATABASE_PATH env:', process.env.DATABASE_PATH)
+console.log('  - Current working directory:', process.cwd())
+
 // DB 디렉토리 자동 생성
 const dbDir = dirname(DB_PATH)
+console.log('  - DB directory:', dbDir)
+console.log('  - Directory exists:', existsSync(dbDir))
+
 if (!existsSync(dbDir)) {
-    mkdirSync(dbDir, { recursive: true })
+    console.log('  - Creating directory:', dbDir)
+    try {
+        mkdirSync(dbDir, { recursive: true })
+        console.log('  ✅ Directory created successfully')
+    } catch (error) {
+        console.error('  ❌ Failed to create directory:', error)
+        throw error
+    }
 }
 
+console.log('  - DB file exists:', existsSync(DB_PATH))
+
 // SQLite 연결
+console.log('🔌 Attempting to connect to SQLite...')
 const sqlite = new Database(DB_PATH)
+console.log('✅ SQLite connection established')
 
 // PRAGMA 설정 (성능 최적화)
 sqlite.pragma('journal_mode = WAL') // Write-Ahead Logging (동시 읽기/쓰기)
