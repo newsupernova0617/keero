@@ -4,8 +4,8 @@ import * as schema from './schema'
 import { mkdirSync, existsSync } from 'fs'
 import { dirname } from 'path'
 
-// DB 경로 (환경 변수로 설정 가능, 기본값: /app/data/posts.db)
-const DB_PATH = process.env.DATABASE_PATH || './data/posts.db'
+// DB 경로 (환경 변수로 설정 가능, Railway volume 기본값: /data/posts.db)
+const DB_PATH = process.env.DATABASE_PATH || '/data/posts.db'
 
 // DB 디렉토리 자동 생성
 const dbDir = dirname(DB_PATH)
