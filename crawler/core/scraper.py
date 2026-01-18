@@ -109,13 +109,34 @@ class Scraper:
                 browser = p.chromium.launch(
                     headless=True,
                     args=[
-                        '--disable-gpu',              # GPU 비활성화 (서버 환경)
-                        '--disable-dev-shm-usage',    # /dev/shm 사용 안함 (메모리 절약)
-                        '--disable-setuid-sandbox',   # 샌드박스 최적화
-                        '--no-sandbox',               # 샌드박스 비활성화 (컨테이너 환경)
-                        '--disable-web-security',     # CORS 우회
-                        '--disable-features=IsolateOrigins,site-per-process',  # 프로세스 격리 비활성화
-                        '--disable-blink-features=AutomationControlled'  # 봇 감지 우회
+                        # 기본 최적화
+                        '--disable-gpu',
+                        '--disable-dev-shm-usage',
+                        '--disable-setuid-sandbox',
+                        '--no-sandbox',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process',
+                        '--disable-blink-features=AutomationControlled',
+                        
+                        # e2-micro 메모리 최적화 (추가)
+                        '--single-process',                    # 단일 프로세스 (메모리 ↓)
+                        '--disable-background-networking',     # 백그라운드 네트워크 비활성화
+                        '--disable-background-timer-throttling',
+                        '--disable-backgrounding-occluded-windows',
+                        '--disable-breakpad',                  # 크래시 리포팅 비활성화
+                        '--disable-component-extensions-with-background-pages',
+                        '--disable-extensions',                # 확장 프로그램 비활성화
+                        '--disable-features=TranslateUI',      # 번역 UI 비활성화
+                        '--disable-ipc-flooding-protection',
+                        '--disable-renderer-backgrounding',
+                        '--metrics-recording-only',
+                        '--mute-audio',                        # 오디오 비활성화
+                        '--no-first-run',
+                        '--no-default-browser-check',
+                        '--disable-sync',                      # 동기화 비활성화
+                        '--disk-cache-size=1',                 # 디스크 캐시 최소화
+                        '--media-cache-size=1',
+                        '--memory-pressure-off',               # 메모리 압박 알림 비활성화
                     ]
                 )
                 context = browser.new_context(
