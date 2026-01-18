@@ -1,4 +1,3 @@
-import { db } from '$lib/server/db'
 import { images } from '$lib/server/schema'
 import { sql, eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
@@ -14,7 +13,8 @@ type SearchResult = {
     image_count: number
 }
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+    const db = locals.db
     const query = url.searchParams.get('q')?.trim()
 
     if (!query) {

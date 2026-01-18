@@ -703,16 +703,16 @@ class DatabaseManager:
         elif img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # 이미지 크기 제한 (최대 600px - 극한 압축)
-        max_dimension = 600
+        # 이미지 크기 제한 (최대 480px - 균형잡힌 최적화)
+        max_dimension = 480
         if max(img.size) > max_dimension:
             ratio = max_dimension / max(img.size)
             new_size = tuple(int(dim * ratio) for dim in img.size)
             img = img.resize(new_size, PILImage.Resampling.LANCZOS)
         
-        # WebP로 변환 (품질 45% - 극한 압축)
+        # WebP로 변환 (품질 40% - 균형잡힌 최적화)
         output = io.BytesIO()
-        img.save(output, format='WEBP', quality=45, method=6)
+        img.save(output, format='WEBP', quality=40, method=6)
         optimized_data = output.getvalue()
         optimized_size = len(optimized_data)
         
@@ -772,14 +772,14 @@ class DatabaseManager:
             else:
                 scale_filter = None
             
-            # ffmpeg 명령 구성 (subprocess 사용) - 극한 압축
+            # ffmpeg 명령 구성 (subprocess 사용) - 균형잡힌 최적화
             cmd = [
                 'ffmpeg',
                 '-i', input_path,
                 '-vcodec', 'libvpx-vp9',
-                '-crf', '50',  # 극한 압축 (42 -> 50)
+                '-crf', '52',  # 균형잡힌 최적화 (50 -> 52)
                 '-b:v', '0',
-                '-maxrate', '400k',  # 최대 비트레이트 제한
+                '-maxrate', '300k',  # 최대 비트레이트 제한 (400k -> 300k)
                 '-bufsize', '800k',
                 '-r', '20',  # 20fps로 제한
                 '-cpu-used', '5',

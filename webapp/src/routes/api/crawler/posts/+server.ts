@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
 import { posts, images } from '$lib/server/schema';
 import { env } from '$env/dynamic/private';
 
@@ -25,7 +24,8 @@ import { env } from '$env/dynamic/private';
  * }
  */
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const db = locals.db
 	try {
 		// 1. API Key 검증
 		const apiKey = request.headers.get('X-API-Key');
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// 3. 트랜잭션으로 게시글 + 이미지 저장
-		const result = await savePostWithImages(postData, imageUrls || []);
+		const result = await savePostWithImages(db, postData, imageUrls || []);
 
 		if (!result.success) {
 			if (result.duplicate) {
@@ -84,6 +84,7 @@ export const POST: RequestHandler = async ({ request }) => {
  * 게시글 + 이미지 저장 (트랜잭션)
  */
 async function savePostWithImages(
+	db: any, // DB type from locals
 	postData: {
 		site_name: string;
 		title: string;

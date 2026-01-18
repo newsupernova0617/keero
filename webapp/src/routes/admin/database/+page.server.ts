@@ -1,11 +1,11 @@
 import { requireAdmin } from '$lib/server/auth'
-import { db } from '$lib/server/db'
 import { posts, comments, users } from '$lib/server/schema'
 import { sql, desc } from 'drizzle-orm'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async (event) => {
+    const db = event.locals.db
 	await requireAdmin(event)
 
 	// 테이블별 통계
@@ -65,7 +65,8 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	// 게시글 삭제
 	deletePost: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 		const { request } = event
 
 		const formData = await request.formData()
@@ -119,7 +120,8 @@ export const actions: Actions = {
 
 	// 댓글 삭제
 	deleteComment: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 		const { request } = event
 
 		const formData = await request.formData()
@@ -136,7 +138,8 @@ export const actions: Actions = {
 
 	// 오래된 게시글 정리 (30일 이상)
 	cleanOldPosts: async (event) => {
-		await requireAdmin(event)
+        const db = event.locals.db
+        await requireAdmin(event)
 
 		const thirtyDaysAgo = new Date()
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)

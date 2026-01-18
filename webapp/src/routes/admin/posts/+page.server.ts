@@ -1,10 +1,10 @@
-import { db } from '$lib/server/db'
 import { posts } from '$lib/server/schema'
 import { eq } from 'drizzle-orm'
 import { fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
     const allPosts = await db
         .select()
         .from(posts)
@@ -17,7 +17,8 @@ export const load: PageServerLoad = async () => {
 }
 
 export const actions: Actions = {
-    delete: async ({ request }) => {
+    delete: async ({ request, locals }) => {
+        const db = locals.db
         const formData = await request.formData()
         const postId = parseInt(formData.get('post_id')?.toString() || '0')
 

@@ -1,5 +1,4 @@
 import { redirect, error } from '@sveltejs/kit'
-import { db } from '$lib/server/db'
 import { users } from '$lib/server/schema'
 import { eq } from 'drizzle-orm'
 import type { RequestEvent } from '@sveltejs/kit'
@@ -21,6 +20,7 @@ export async function requireAdmin(event: RequestEvent) {
     }
 
     // DB에서 사용자 정보 조회
+    const db = event.locals.db
     const dbUser = await db
         .select()
         .from(users)

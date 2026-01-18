@@ -25,6 +25,14 @@ export const handle: Handle = async ({ event, resolve }) => {
     })
 
     /**
+     * Initialize D1 database from Cloudflare platform bindings
+     */
+    if (event.platform?.env?.DB) {
+        const { getDB } = await import('$lib/server/db')
+        event.locals.db = getDB(event.platform.env)
+    }
+
+    /**
      * Unlike `supabase.auth.getSession()`, which returns the session _without_
      * validating the JWT, this function also calls `getUser()` to validate the
      * JWT before returning the session.

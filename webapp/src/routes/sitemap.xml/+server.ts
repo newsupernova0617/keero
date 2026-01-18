@@ -1,9 +1,9 @@
-import { db } from '$lib/server/db'
 import { posts } from '$lib/server/schema'
 import { desc, isNull } from 'drizzle-orm'
 import { env } from '$env/dynamic/public'
 
-export async function GET({ url }) {
+export async function GET({ url, locals }) {
+    const db = locals.db
     try {
         // 최근 1000개 게시글 조회
         const allPosts = await db

@@ -1,9 +1,9 @@
-import { db } from '$lib/server/db'
 import { comments, users, posts, likes } from '$lib/server/schema'
 import { desc, sql, eq } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
 	// 좋아요 많은 댓글 TOP 100 조회
 	const bestComments = await db
 		.select({

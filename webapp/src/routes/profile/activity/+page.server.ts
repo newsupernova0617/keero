@@ -1,10 +1,10 @@
 import { requireAuth } from '$lib/server/auth'
-import { db } from '$lib/server/db'
 import { comments, likes, bookmarks, posts, users } from '$lib/server/schema'
 import { eq, sql } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async (event) => {
+    const db = event.locals.db
     const { user } = await requireAuth(event)
 
     // DB에서 사용자 정보 조회

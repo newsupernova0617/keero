@@ -1,4 +1,3 @@
-import { db } from '$lib/server/db'
 import { posts, comments, likes, highlights, users } from '$lib/server/schema'
 import { desc, sql, eq, and, isNull } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
@@ -35,7 +34,8 @@ const defaultComments: Record<number, string> = {
 	10: '📌 꼭 읽어봐야 할 글'
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
 	// 이번 주 시작일/종료일 계산
 	const now = new Date()
 	const weekStart = getMonday(now)

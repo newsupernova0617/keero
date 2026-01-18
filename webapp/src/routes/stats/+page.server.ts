@@ -1,9 +1,9 @@
-import { db } from '$lib/server/db'
 import { posts, likes, comments, images } from '$lib/server/schema'
 import { desc, sql, count, isNull } from 'drizzle-orm'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+    const db = locals.db
     // 주간 베스트 (최근 7일, 좋아요 순)
     const weeklyBest = await db
         .select({
