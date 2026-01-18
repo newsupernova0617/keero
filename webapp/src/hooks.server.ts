@@ -84,8 +84,8 @@ export const handle: Handle = async ({ event, resolve }) => {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob:; " +
-        "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com; " +
-        "frame-src 'self' https://www.google.com; " +
+        "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com https://display.ad.daum.net https://*.daumcdn.net; " +
+        "frame-src 'self' https://www.google.com https://t1.daumcdn.net https://*.daumcdn.net; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "form-action 'self';"
