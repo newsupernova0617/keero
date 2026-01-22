@@ -20,7 +20,7 @@ bucket_name = "keero"
 PUBLIC_SUPABASE_URL = "https://hqqplmsisukpouimnhfy.supabase.co"
 PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_-iO_42Hfeig1Ceh69LbM7w_lwatqJKc"
 R2_PUBLIC_URL = "https://pub-1c1e838585234b46b9dc52d5e232aa69.r2.dev"
-PUBLIC_BASE_URL = "keero-production.up.railway.app/"
+# PUBLIC_BASE_URL은 Secret으로 관리됨
 PUBLIC_ADSENSE_ENABLED = "1"
 R2_ACCOUNT_ID = "d633a7c3cd0cd71ea3144f17896d4e65"
 R2_BUCKET_NAME = "keero"
